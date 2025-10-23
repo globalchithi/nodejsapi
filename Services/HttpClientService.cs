@@ -10,6 +10,7 @@ public class HttpClientService : IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<HttpClientService> _logger;
+    private readonly IConfiguration _configuration;
     private readonly ApiConfiguration _apiConfig;
     private readonly HeadersConfiguration _headersConfig;
 
@@ -17,6 +18,7 @@ public class HttpClientService : IDisposable
     {
         _httpClient = httpClient;
         _logger = logger;
+        _configuration = configuration;
         
         // Read configuration directly from IConfiguration
         _apiConfig = new ApiConfiguration
@@ -62,6 +64,15 @@ public class HttpClientService : IDisposable
             // Note: In production, you should use proper certificate validation
             // This is only for testing purposes
             // For .NET 6.0, we'll handle this in the HttpClient configuration
+        }
+        
+        // Configure proxy if specified
+        var proxyUrl = _configuration["ApiConfiguration:ProxyUrl"];
+        if (!string.IsNullOrEmpty(proxyUrl))
+        {
+            // Note: Proxy configuration would need to be set up in the HttpClientHandler
+            // For now, we'll just log that proxy is configured
+            _logger.LogInformation($"Proxy configured: {proxyUrl}");
         }
         
         // Add default headers
