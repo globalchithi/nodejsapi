@@ -1,165 +1,227 @@
-# 🚀 Teams Integration Guide
+# 📤 Microsoft Teams Integration Guide
 
-This guide explains how to automatically parse test results and send them to Microsoft Teams.
+## Overview
+The VaxCare API Test Suite now includes Microsoft Teams integration to automatically send test results as beautiful Adaptive Cards.
 
-## 📋 Overview
+## 🚀 Quick Start
 
-The system can automatically:
-1. **Parse XML test results** from xUnit or TRX loggers
-2. **Extract test statistics** (total, passed, failed, skipped, duration)
-3. **Send formatted notifications** to Microsoft Teams with Adaptive Cards
-4. **Handle malformed XML** with auto-repair and regex fallback
+### **Option 1: Run Tests with Teams Notification**
+```bash
+# Run all tests and send results to Teams
+python3 run-all-tests.py --teams
 
-## 🔧 Setup
+# Run specific tests and send to Teams
+python3 run-all-tests.py --category inventory --teams
 
-### 1. Configure Teams Webhook
-
-Add your Teams webhook URL to the `.env` file:
-
-```env
-# Microsoft Teams Integration
-TEAMS_WEBHOOK_URL=https://your-webhook-url-here
-SEND_TEAMS_NOTIFICATION=true
+# Run with custom environment and browser info
+python3 run-all-tests.py --teams --environment "Production" --browser "Chrome (Headless)"
 ```
 
-### 2. Test Your Webhook
+### **Option 2: Send Teams Notification Only**
+```bash
+# Send notification for existing test results
+python3 send-teams-notification.py --xml TestReports/TestResults.xml
 
-```cmd
-# Test with your webhook URL
-test-teams-webhook.bat "https://your-webhook-url"
+# Send with custom environment
+python3 send-teams-notification.py --environment "Staging" --browser "Firefox"
+
+# Test Teams connection
+python3 send-teams-notification.py --test
 ```
 
-## 🚀 Usage Options
+## 🔧 Configuration
 
-### Option 1: Automatic Integration (Recommended)
+### **Webhook URL**
+The script uses a default webhook URL from your curl command. You can override it:
 
-The main test runner automatically parses results and sends to Teams:
-
-```cmd
-# Run tests with automatic Teams notification
-run-tests-with-reporting.bat
-
-# Or with specific test filter
-run-tests-with-reporting.bat "FullyQualifiedName~Inventory"
+```bash
+# Use custom webhook URL
+python3 send-teams-notification.py --webhook "YOUR_WEBHOOK_URL"
 ```
 
-### Option 2: Parse Existing Results
+### **Environment Variables**
+You can set default values in your environment:
 
-Parse existing test results and send to Teams:
+```bash
+# Set default environment
+export TEAMS_ENVIRONMENT="Production"
 
-```cmd
-# Parse results from TestReports directory
-parse-and-send-results.bat "https://your-webhook-url" "Development" "Chrome"
-
-# Or use environment variables
-parse-and-send-results.bat
-```
-
-### Option 3: Manual PowerShell
-
-```powershell
-# Parse specific XML file and send to Teams
-powershell -ExecutionPolicy Bypass -File "parse-test-results.ps1" -XmlFile "TestReports\TestResults.xml" -WebhookUrl "https://your-webhook-url" -Environment "Staging" -Browser "Chrome"
+# Set default browser
+export TEAMS_BROWSER="Chrome (Headless)"
 ```
 
 ## 📊 What Gets Sent to Teams
 
-The Teams notification includes:
+### **Adaptive Card Content:**
+- ✅ **Test Status** - Pass/Fail summary with emojis
+- 📊 **Statistics** - Total, Passed, Failed, Skipped counts
+- 🎯 **Success Rate** - Percentage of passed tests
+- ⏱️ **Duration** - Total test execution time
+- 🌍 **Environment** - Development, Staging, Production
+- 🌐 **Browser** - Chrome, Firefox, Safari, etc.
+- 📅 **Timestamp** - When tests were executed
 
-- **Test Status**: ✅ All passed or ❌ Some failed
-- **Environment**: Development, Staging, Production, etc.
-- **Total Tests**: Total number of tests run
-- **Passed**: Number of successful tests
-- **Failed**: Number of failed tests
-- **Skipped**: Number of skipped tests
-- **Success Rate**: Percentage of passed tests
-- **Duration**: Total execution time
-- **Browser**: Browser used (if applicable)
-- **Timestamp**: When the tests were run
+### **Example Teams Message:**
+```
+🚀 Test Automation Results
 
-## 🧪 Testing the Integration
+API Test Results
+✅ All 14 tests passed successfully!
 
-### Test with Sample Data
-
-```cmd
-# Create sample test results and test parsing
-test-parse-results.bat
+Environment: Development
+Total Tests: 14
+Passed: 12
+Failed: 2
+Skipped: 0
+Success Rate: 85.7%
+Duration: 2m 35s
+Browser: Chrome (Headless)
+Timestamp: 10/23/2025, 11:15:30 AM
 ```
 
-This creates sample XML with:
-- 14 total tests
-- 12 passed
-- 2 failed
-- 0 skipped
-- 85.7% success rate
+## 🎯 Usage Examples
 
-### Test Your Webhook
+### **Run All Tests with Teams Notification**
+```bash
+# Basic usage
+python3 run-all-tests.py --teams
 
-```cmd
-# Test your actual webhook URL
-test-teams-webhook.bat "https://your-webhook-url"
+# With custom environment
+python3 run-all-tests.py --teams --environment "Staging"
+
+# With custom browser info
+python3 run-all-tests.py --teams --browser "Firefox (Headless)"
 ```
 
-## 🔍 Troubleshooting
+### **Run Specific Test Categories**
+```bash
+# Inventory tests
+python3 run-all-tests.py --category inventory --teams
 
-### Common Issues
+# Patient tests
+python3 run-all-tests.py --category patients --teams
 
-1. **"No XML test results found"**
-   - Make sure tests were run with `--logger xunit` or `--logger trx`
-   - Check that `TestReports` directory exists
-
-2. **"Teams notification failed"**
-   - Verify your webhook URL is correct
-   - Check network connectivity
-   - Ensure `curl.exe` is available
-
-3. **"XML parsing failed"**
-   - The system includes auto-repair for malformed XML
-   - Regex fallback is used if XML parsing fails
-   - Check that the XML file is not corrupted
-
-### Debug Mode
-
-Enable verbose output by setting in `.env`:
-
-```env
-VERBOSE=true
-DEBUG_MODE=true
+# Setup tests
+python3 run-all-tests.py --category setup --teams
 ```
 
-## 📁 File Structure
+### **Send Notification for Existing Results**
+```bash
+# Send notification for existing XML file
+python3 send-teams-notification.py
 
+# Send with custom parameters
+python3 send-teams-notification.py --environment "Production" --browser "Chrome"
+
+# Test Teams connection
+python3 send-teams-notification.py --test
 ```
-nodejsapi/
-├── parse-test-results.ps1          # Main parsing script
-├── parse-and-send-results.bat      # Batch wrapper
-├── test-parse-results.bat          # Test with sample data
-├── test-teams-webhook.bat          # Test webhook URL
-├── send-teams-simple.ps1           # Simple Teams sender
-├── send-teams-curl.bat             # Direct curl approach
-└── .env                           # Configuration file
+
+## 🔧 Advanced Configuration
+
+### **Custom Webhook URL**
+```bash
+# Use your own webhook URL
+python3 send-teams-notification.py --webhook "https://your-webhook-url"
 ```
 
-## 🎯 Example Workflow
+### **Environment-Specific Settings**
+```bash
+# Development environment
+python3 run-all-tests.py --teams --environment "Development" --browser "Chrome"
 
-1. **Run Tests**: `run-tests-with-reporting.bat`
-2. **Automatic Parsing**: System parses `TestResults.xml`
-3. **Teams Notification**: Results sent to Teams channel
-4. **Check Teams**: View the Adaptive Card in your Teams channel
+# Staging environment
+python3 run-all-tests.py --teams --environment "Staging" --browser "Firefox"
 
-## 💡 Tips
+# Production environment
+python3 run-all-tests.py --teams --environment "Production" --browser "Chrome (Headless)"
+```
 
-- **Environment Variables**: Use `.env` file for configuration
-- **Multiple Formats**: Supports both xUnit and TRX XML formats
-- **Auto-Repair**: Handles malformed XML automatically
-- **Fallback**: Regex extraction if XML parsing fails
-- **Flexible**: Works with existing test results or new test runs
+## 🛠️ Troubleshooting
 
-## 🔗 Related Files
+### **Common Issues:**
 
-- `run-tests-with-reporting.bat` - Main test runner with Teams integration
-- `parse-test-results.ps1` - Core parsing logic
-- `generate-enhanced-report-minimal.ps1` - HTML report generation
-- `.env` - Configuration file
-- `load-env-batch.bat` - Environment variable loader
+#### **1. "Teams notification failed"**
+- Check your webhook URL
+- Verify internet connection
+- Check if the webhook endpoint is accessible
 
+#### **2. "XML file not found"**
+- Make sure tests have run successfully
+- Check if `TestResults.xml` exists in `TestReports/` directory
+
+#### **3. "Failed to parse XML file"**
+- The script uses robust XML parsing
+- Should handle most XML issues automatically
+
+### **Debug Steps:**
+```bash
+# Test Teams connection
+python3 send-teams-notification.py --test
+
+# Check XML file
+ls -la TestReports/TestResults.xml
+
+# Test XML parsing
+python3 send-teams-notification.py --xml TestReports/TestResults.xml
+```
+
+## 🎨 Teams Card Features
+
+### **Visual Elements:**
+- 🎨 **Beautiful Adaptive Cards** - Rich formatting
+- 📊 **Color-coded Status** - Green for success, yellow for warnings
+- 📈 **Progress Indicators** - Visual test statistics
+- 🕒 **Timestamps** - When tests were executed
+- 🌍 **Environment Info** - Which environment was tested
+
+### **Responsive Design:**
+- 📱 **Mobile-friendly** - Works on all devices
+- 💻 **Desktop optimized** - Great on large screens
+- 🎯 **Clear hierarchy** - Easy to read information
+
+## 🚀 CI/CD Integration
+
+### **GitHub Actions:**
+```yaml
+- name: Run Tests with Teams Notification
+  run: |
+    python3 run-all-tests.py --teams --environment "CI" --browser "Chrome (Headless)"
+```
+
+### **Azure DevOps:**
+```yaml
+- script: |
+    python3 run-all-tests.py --teams --environment "Azure DevOps" --browser "Chrome"
+  displayName: 'Run Tests with Teams Notification'
+```
+
+## 🎉 Benefits
+
+### **For Teams:**
+- ✅ **Real-time notifications** - Know test results immediately
+- 📊 **Visual reports** - Beautiful Adaptive Cards
+- 🔔 **Automatic updates** - No manual checking needed
+- 📱 **Mobile access** - Check results anywhere
+
+### **For Developers:**
+- ✅ **Automated reporting** - No manual work required
+- 🎯 **Rich information** - Detailed test statistics
+- 🌍 **Environment awareness** - Know which environment was tested
+- 📈 **Progress tracking** - See test trends over time
+
+## 📞 Support
+
+### **If You Need Help:**
+1. **Test Teams connection:** `python3 send-teams-notification.py --test`
+2. **Check XML file:** `ls -la TestReports/TestResults.xml`
+3. **Run diagnostic:** `python3 diagnose-issues.py`
+4. **Check webhook URL** - Make sure it's correct and accessible
+
+### **Success Indicators:**
+- ✅ **"Teams notification sent successfully!"** message
+- 📤 **Message appears in Teams channel**
+- 📊 **Beautiful Adaptive Card with test results**
+- 🎯 **All test statistics displayed correctly**
+
+The Teams integration makes it easy to share test results with your team automatically! 🚀

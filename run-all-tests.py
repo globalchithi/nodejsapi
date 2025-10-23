@@ -116,6 +116,19 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports"):
             else:
                 safe_print("⚠️ HTML report generation failed, but tests completed")
         
+        # Send Teams notification if requested
+        if args.teams:
+            safe_print("📤 Sending Teams notification...")
+            teams_success, _, _ = run_command(
+                f"python3 send-teams-notification.py --xml \"{xml_file_to_use}\" --environment \"{args.environment}\" --browser \"{args.browser}\"",
+                "Sending Teams notification"
+            )
+            
+            if teams_success:
+                safe_print("✅ Teams notification sent successfully!")
+            else:
+                safe_print("⚠️ Teams notification failed, but tests completed")
+        
         return True
     else:
         safe_print("❌ Test execution failed")
@@ -146,6 +159,10 @@ def main():
     parser.add_argument('--output', default='TestReports', help='Output directory for reports')
     parser.add_argument('--clean', action='store_true', help='Clean and restore before running')
     parser.add_argument('--list-categories', action='store_true', help='List available test categories')
+    parser.add_argument('--teams', action='store_true', help='Send results to Microsoft Teams')
+    parser.add_argument('--webhook', help='Microsoft Teams webhook URL')
+    parser.add_argument('--environment', default='Development', help='Environment name for Teams notification')
+    parser.add_argument('--browser', default='N/A', help='Browser information for Teams notification')
     
     args = parser.parse_args()
     
