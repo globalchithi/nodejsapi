@@ -86,14 +86,21 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
         # Generate enhanced HTML report
         xml_file_to_use = xml_file
         if not os.path.exists(xml_file):
-            # Try to find any XML file in the output directory
-            fallback_xml = os.path.join(output_dir, "TestResults.xml")
-            if os.path.exists(fallback_xml):
-                safe_print(f"📄 Using existing XML file: {fallback_xml}")
-                xml_file_to_use = fallback_xml
+            # Try to find any XML file in the output directory or subdirectories
+            import glob
+            xml_files = glob.glob(os.path.join(output_dir, "**", "TestResults_*.xml"), recursive=True)
+            if xml_files:
+                # Get the most recent XML file
+                xml_file_to_use = max(xml_files, key=os.path.getmtime)
+                safe_print(f"📄 Using latest XML file: {xml_file_to_use}")
             else:
-                safe_print("⚠️ No XML test results file found")
-                return True  # Tests completed but no XML file
+                fallback_xml = os.path.join(output_dir, "TestResults.xml")
+                if os.path.exists(fallback_xml):
+                    safe_print(f"📄 Using existing XML file: {fallback_xml}")
+                    xml_file_to_use = fallback_xml
+                else:
+                    safe_print("⚠️ No XML test results file found")
+                    return True  # Tests completed but no XML file
         
         if os.path.exists(xml_file_to_use):
             safe_print("📄 Generating enhanced HTML report...")

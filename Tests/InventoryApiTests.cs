@@ -120,8 +120,8 @@ public class InventoryApiTests : IDisposable
         decodedIdentifier.AndroidSdk.Should().Be(29);
         decodedIdentifier.AndroidVersion.Should().Be("10");
         decodedIdentifier.DeviceSerialNumber.Should().Be("NO_PERMISSION");
-        decodedIdentifier.UserId.Should().Be(0);
-        decodedIdentifier.UserName.Should().Be("");
+        decodedIdentifier.UserId.Should().Be(100186894);
+        decodedIdentifier.UserName.Should().Be("qarobot@vaxcare.com");
         decodedIdentifier.VersionName.Should().Be("3.0.0-0-STG");
         decodedIdentifier.ModelType.Should().Be("MobileHub");
         decodedIdentifier.AssetTag.Should().Be(-1);
@@ -161,7 +161,7 @@ public class InventoryApiTests : IDisposable
 
         // Validate specific header values
         headers["IsCalledByJob"].Should().Be("true");
-        headers["UserSessionId"].Should().Be("NO USER LOGGED IN");
+        headers["UserSessionId"].Should().Be("04abd063-1b1f-490d-be30-765d1801891b");
         headers["MessageSource"].Should().Be("VaxMobile");
         headers["User-Agent"].Should().Be("okhttp/4.12.0");
     }
@@ -200,7 +200,7 @@ public class InventoryApiTests : IDisposable
         // Validate specific header values from curl command
         headers["IsCalledByJob"].Should().Be("true");
         headers["MobileData"].Should().Be("false");
-        headers["UserSessionId"].Should().Be("NO USER LOGGED IN");
+        headers["UserSessionId"].Should().Be("04abd063-1b1f-490d-be30-765d1801891b");
         headers["MessageSource"].Should().Be("VaxMobile");
         headers["Host"].Should().Be("vhapistg.vaxcare.com");
         headers["Connection"].Should().Be("Keep-Alive");
