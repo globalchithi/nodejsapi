@@ -29,10 +29,27 @@ try {
     # Try different methods to load XML
     $xmlContent = $null
     try {
+        # Try UTF8 first
         [xml]$xmlContent = Get-Content $XmlFile -Raw -Encoding UTF8
+        Write-Host "XML loaded with UTF8 encoding" -ForegroundColor Green
     } catch {
-        Write-Host "UTF8 encoding failed, trying default encoding..." -ForegroundColor Yellow
-        [xml]$xmlContent = Get-Content $XmlFile -Raw
+        Write-Host "UTF8 encoding failed, trying UTF8 with BOM..." -ForegroundColor Yellow
+        try {
+            [xml]$xmlContent = Get-Content $XmlFile -Raw -Encoding UTF8 -NoNewline
+        } catch {
+            Write-Host "UTF8 with BOM failed, trying default encoding..." -ForegroundColor Yellow
+            try {
+                [xml]$xmlContent = Get-Content $XmlFile -Raw
+            } catch {
+                Write-Host "Default encoding failed, trying ASCII..." -ForegroundColor Yellow
+                try {
+                    [xml]$xmlContent = Get-Content $XmlFile -Raw -Encoding ASCII
+                } catch {
+                    Write-Host "ASCII failed, trying Unicode..." -ForegroundColor Yellow
+                    [xml]$xmlContent = Get-Content $XmlFile -Raw -Encoding Unicode
+                }
+            }
+        }
     }
     
     if ($xmlContent -eq $null) {
@@ -310,7 +327,19 @@ $htmlContent += @"
 
 # Write HTML content to file
 try {
-    $htmlContent | Out-File -FilePath $htmlReportPath -Encoding UTF8 -NoNewline
+    # Try different encoding methods for output
+    try {
+        $htmlContent | Out-File -FilePath $htmlReportPath -Encoding UTF8 -NoNewline
+        Write-Host "HTML file written with UTF8 encoding" -ForegroundColor Green
+    } catch {
+        Write-Host "UTF8 output failed, trying UTF8 with BOM..." -ForegroundColor Yellow
+        try {
+            $htmlContent | Out-File -FilePath $htmlReportPath -Encoding UTF8
+        } catch {
+            Write-Host "UTF8 with BOM failed, trying default encoding..." -ForegroundColor Yellow
+            $htmlContent | Out-File -FilePath $htmlReportPath -Encoding Default
+        }
+    }
     Write-Host "HTML report generated: $htmlReportPath" -ForegroundColor Green
     Write-Host "Report Statistics:" -ForegroundColor Cyan
     Write-Host "   File: $htmlReportPath" -ForegroundColor White
