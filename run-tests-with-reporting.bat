@@ -126,8 +126,8 @@ if %TEST_EXIT_CODE% equ 0 (
 )
 
 REM Generate enhanced HTML report
-echo 📊 Generating enhanced HTML report...
-powershell -ExecutionPolicy Bypass -File "generate-enhanced-report-minimal.ps1"
+echo 📊 Generating enhanced HTML report with beautiful table...
+powershell -ExecutionPolicy Bypass -File "generate-enhanced-html-report.ps1"
 
 REM Parse test results and send to Teams if enabled
 if "%SEND_TEAMS_NOTIFICATION%"=="true" (
