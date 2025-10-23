@@ -63,7 +63,7 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports"):
     xml_file = os.path.join(output_dir, f"TestResults_{timestamp}.xml")
     
     # Build test command
-    test_cmd = f"dotnet test --logger \"trx;LogFileName=TestResults_{timestamp}.trx\" --logger \"xunit;LogFileName={xml_file}\" --verbosity normal"
+    test_cmd = f"dotnet test --logger \"trx;LogFileName=TestResults_{timestamp}.trx\" --logger \"xunit;LogFileName={xml_file}\" --verbosity normal --results-directory \"{output_dir}\""
     
     if test_filter:
         test_cmd += f" --filter \"{test_filter}\""
@@ -76,10 +76,21 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports"):
         print(stdout)
         
         # Generate enhanced HTML report
-        if os.path.exists(xml_file):
+        xml_file_to_use = xml_file
+        if not os.path.exists(xml_file):
+            # Try to find any XML file in the output directory
+            fallback_xml = os.path.join(output_dir, "TestResults.xml")
+            if os.path.exists(fallback_xml):
+                print(f"📄 Using existing XML file: {fallback_xml}")
+                xml_file_to_use = fallback_xml
+            else:
+                print("⚠️ No XML test results file found")
+                return True  # Tests completed but no XML file
+        
+        if os.path.exists(xml_file_to_use):
             print("📄 Generating enhanced HTML report...")
             report_success, _, _ = run_command(
-                f"python3 generate-enhanced-html-report.py --xml \"{xml_file}\" --output \"{output_dir}\"",
+                f"python3 generate-enhanced-html-report.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
                 "Generating HTML report"
             )
             
@@ -87,8 +98,6 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports"):
                 print("✅ Enhanced HTML report generated successfully!")
             else:
                 print("⚠️ HTML report generation failed, but tests completed")
-        else:
-            print("⚠️ XML test results file not found")
         
         return True
     else:
