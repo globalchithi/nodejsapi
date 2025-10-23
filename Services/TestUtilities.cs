@@ -15,7 +15,16 @@ public class TestUtilities
     {
         _configuration = configuration;
         _headersConfig = new HeadersConfiguration();
-        _configuration.GetSection("Headers").Bind(_headersConfig);
+        
+        try
+        {
+            _configuration.GetSection("Headers").Bind(_headersConfig);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️  Warning: Could not bind Headers configuration: {ex.Message}");
+            // Continue with default values
+        }
     }
 
     public Dictionary<string, string> CreateTestHeaders(Dictionary<string, string>? overrides = null)
