@@ -6,30 +6,7 @@ setlocal enabledelayedexpansion
 
 REM Load environment variables from .env file
 echo 📄 Loading environment configuration...
-
-REM Load from .env file directly
-if exist ".env" (
-    echo   Loading from .env file...
-    for /f "usebackq tokens=1,2 delims==" %%a in (".env") do (
-        if not "%%a"=="" if not "%%a:~0,1%"=="#" (
-            set "%%a=%%b"
-            echo   Set %%a=%%b
-        )
-    )
-) else (
-    echo   ⚠️  .env file not found
-)
-
-REM Load from .env.local if it exists (overrides .env)
-if exist ".env.local" (
-    echo   Loading from .env.local file...
-    for /f "usebackq tokens=1,2 delims==" %%a in (".env.local") do (
-        if not "%%a"=="" if not "%%a:~0,1%"=="#" (
-            set "%%a=%%b"
-            echo   Set %%a=%%b
-        )
-    )
-)
+call load-env-batch.bat
 
 REM Default values (can be overridden by .env file)
 set "FILTER="
