@@ -91,7 +91,7 @@ if %TEST_EXIT_CODE% equ 0 (
 
 REM Generate enhanced HTML report
 echo 📊 Generating enhanced HTML report...
-powershell -ExecutionPolicy Bypass -File "generate-enhanced-report-fixed.ps1"
+powershell -ExecutionPolicy Bypass -File "generate-enhanced-report.ps1"
 
 REM Generate PDF report if requested
 if "%GENERATE_PDF%"=="true" (
