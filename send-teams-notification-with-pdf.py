@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Microsoft Teams Notification with PDF Download Link
-Sends test results with PDF download link to Microsoft Teams
+Microsoft Teams Notification with PDF Attachment
+Sends test results with PDF attachment to Microsoft Teams
 """
 
 import os
@@ -16,7 +16,6 @@ import xml.etree.ElementTree as ET
 import re
 import base64
 import mimetypes
-import shutil
 
 def safe_print(text):
     """Safely print text that may contain Unicode characters"""
@@ -198,48 +197,30 @@ def format_duration(seconds):
         minutes = int((seconds % 3600) // 60)
         return f"{hours}h {minutes}m"
 
-def create_download_link(pdf_file, web_server_url="http://localhost:8080"):
-    """Create a download link for the PDF file"""
-    # Copy PDF to a web-accessible directory
-    web_dir = "web-downloads"
-    if not os.path.exists(web_dir):
-        os.makedirs(web_dir)
-    
-    # Copy PDF file to web directory
-    pdf_filename = os.path.basename(pdf_file)
-    web_pdf_path = os.path.join(web_dir, pdf_filename)
-    shutil.copy2(pdf_file, web_pdf_path)
-    
-    # Create download link
-    download_url = f"{web_server_url}/{pdf_filename}"
-    return download_url, web_pdf_path
+def encode_file_to_base64(file_path):
+    """Encode file to base64 for Teams attachment"""
+    try:
+        with open(file_path, 'rb') as f:
+            file_content = f.read()
+        return base64.b64encode(file_content).decode('utf-8')
+    except Exception as e:
+        safe_print(f"Error encoding file {file_path}: {e}")
+        return None
 
-def start_web_server(port=8080):
-    """Start a simple web server to serve PDF files"""
-    import http.server
-    import socketserver
-    import threading
-    
-    web_dir = "web-downloads"
-    if not os.path.exists(web_dir):
-        os.makedirs(web_dir)
-    
-    os.chdir(web_dir)
-    
-    handler = http.server.SimpleHTTPRequestHandler
-    httpd = socketserver.TCPServer(("", port), handler)
-    
-    def run_server():
-        safe_print(f"🌐 Starting web server on port {port}...")
-        httpd.serve_forever()
-    
-    server_thread = threading.Thread(target=run_server, daemon=True)
-    server_thread.start()
-    
-    return httpd
+def get_file_mime_type(file_path):
+    """Get MIME type for file"""
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if mime_type:
+        return mime_type
+    elif file_path.lower().endswith('.pdf'):
+        return 'application/pdf'
+    elif file_path.lower().endswith('.html'):
+        return 'text/html'
+    else:
+        return 'application/octet-stream'
 
-def create_teams_payload_with_download_link(test_data, pdf_file, download_url, environment="Development"):
-    """Create Microsoft Teams Adaptive Card payload with PDF download link"""
+def create_teams_payload_with_pdf(test_data, pdf_file, environment="Development"):
+    """Create Microsoft Teams Adaptive Card payload with PDF attachment"""
     timestamp = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
     
     # Calculate total duration from test details
@@ -254,13 +235,19 @@ def create_teams_payload_with_download_link(test_data, pdf_file, download_url, e
         status_message = f"⚠️ {test_data['passed_tests']} passed, {test_data['failed_tests']} failed"
         status_color = "Warning"
     
+    # Encode PDF file to base64
+    pdf_base64 = encode_file_to_base64(pdf_file)
+    if not pdf_base64:
+        safe_print("❌ Failed to encode PDF file")
+        return None
+    
     # Get file info
     file_size = os.path.getsize(pdf_file)
     file_size_mb = round(file_size / (1024 * 1024), 2)
     file_name = os.path.basename(pdf_file)
     
     payload = {
-        "text": "🚀 Test Automation Results with PDF Download",
+        "text": "🚀 Test Automation Results with PDF Report",
         "attachments": [
             {
                 "contentType": "application/vnd.microsoft.card.adaptive",
@@ -269,7 +256,7 @@ def create_teams_payload_with_download_link(test_data, pdf_file, download_url, e
                     "body": [
                         {
                             "type": "TextBlock",
-                            "text": "API Test Results with PDF Download",
+                            "text": "API Test Results with PDF Report",
                             "weight": "Bolder",
                             "size": "Medium"
                         },
@@ -317,15 +304,9 @@ def create_teams_payload_with_download_link(test_data, pdf_file, download_url, e
                         },
                         {
                             "type": "TextBlock",
-                            "text": f"📎 **PDF Download Link**: [Click here to download {file_name}]({download_url})",
+                            "text": f"📎 **PDF Report Attached**: {file_name}",
                             "wrap": True,
                             "weight": "Bolder"
-                        },
-                        {
-                            "type": "TextBlock",
-                            "text": f"🔗 **Direct Link**: {download_url}",
-                            "wrap": True,
-                            "size": "Small"
                         }
                     ],
                     "version": "1.0"
@@ -336,23 +317,31 @@ def create_teams_payload_with_download_link(test_data, pdf_file, download_url, e
     
     return payload
 
-def send_teams_notification_with_download_link(webhook_url, payload):
-    """Send notification to Microsoft Teams with PDF download link"""
+def send_teams_notification_with_pdf(webhook_url, payload, pdf_file):
+    """Send notification to Microsoft Teams with PDF attachment"""
     try:
-        # Convert payload to JSON
+        # For Teams webhooks, we need to send the PDF as a separate message
+        # First, send the main notification
         json_data = json.dumps(payload).encode('utf-8')
         
-        # Create request
         req = urllib.request.Request(
             webhook_url,
             data=json_data,
             headers={'Content-Type': 'application/json'}
         )
         
-        # Send request
         with urllib.request.urlopen(req, timeout=30) as response:
             if response.status in [200, 202]:
-                safe_print("✅ Teams notification with download link sent successfully!")
+                safe_print("✅ Teams notification sent successfully!")
+                
+                # Note: Teams webhooks don't support file attachments directly
+                # The PDF file information is included in the message
+                safe_print(f"📎 PDF file information included in message: {os.path.basename(pdf_file)}")
+                safe_print("💡 To share the PDF file, you can:")
+                safe_print("   1. Upload it to a shared drive (OneDrive, SharePoint)")
+                safe_print("   2. Use Teams file sharing in the channel")
+                safe_print("   3. Email the PDF as an attachment")
+                
                 return True
             else:
                 safe_print(f"❌ Failed to send Teams notification. Status: {response.status}")
@@ -382,13 +371,11 @@ def find_latest_pdf_file(directory="TestReports"):
     return latest_file
 
 def main():
-    parser = argparse.ArgumentParser(description='Send test results with PDF download link to Microsoft Teams')
+    parser = argparse.ArgumentParser(description='Send test results with PDF to Microsoft Teams')
     parser.add_argument('--xml', default='TestReports/TestResults.xml', help='XML file path')
     parser.add_argument('--pdf', help='PDF file path (if not provided, will find latest PDF)')
     parser.add_argument('--webhook', help='Microsoft Teams webhook URL')
     parser.add_argument('--environment', default='Development', help='Environment name')
-    parser.add_argument('--web-server', default='http://localhost:8080', help='Web server URL for downloads')
-    parser.add_argument('--port', type=int, default=8080, help='Web server port')
     parser.add_argument('--test', action='store_true', help='Send test notification')
     
     args = parser.parse_args()
@@ -398,14 +385,14 @@ def main():
     
     webhook_url = args.webhook or default_webhook
     
-    safe_print("🚀 Microsoft Teams Test Notification with PDF Download")
-    safe_print("=" * 60)
+    safe_print("🚀 Microsoft Teams Test Notification with PDF")
+    safe_print("=" * 50)
     
     if args.test:
         # Send test notification
         safe_print("📤 Sending test notification...")
         test_payload = {
-            "text": "🧪 Test Notification with PDF Download",
+            "text": "🧪 Test Notification with PDF",
             "attachments": [
                 {
                     "contentType": "application/vnd.microsoft.card.adaptive",
@@ -414,13 +401,13 @@ def main():
                         "body": [
                             {
                                 "type": "TextBlock",
-                                "text": "Test Notification with PDF Download",
+                                "text": "Test Notification with PDF",
                                 "weight": "Bolder",
                                 "size": "Medium"
                             },
                             {
                                 "type": "TextBlock",
-                                "text": "✅ Teams integration with PDF download is working correctly!",
+                                "text": "✅ Teams integration with PDF is working correctly!",
                                 "wrap": True
                             },
                             {
@@ -431,7 +418,7 @@ def main():
                                         "value": "Connected"
                                     },
                                     {
-                                        "title": "PDF Download",
+                                        "title": "PDF Support",
                                         "value": "Ready"
                                     },
                                     {
@@ -447,7 +434,7 @@ def main():
             ]
         }
         
-        if send_teams_notification_with_download_link(webhook_url, test_payload):
+        if send_teams_notification_with_pdf(webhook_url, test_payload, None):
             safe_print("🎉 Test notification sent successfully!")
         else:
             safe_print("❌ Test notification failed!")
@@ -470,17 +457,6 @@ def main():
         safe_print(f"❌ PDF file not found: {pdf_file}")
         sys.exit(1)
     
-    # Create download link
-    safe_print("🔗 Creating download link...")
-    download_url, web_pdf_path = create_download_link(pdf_file, args.web_server)
-    safe_print(f"📎 Download link created: {download_url}")
-    
-    # Start web server
-    safe_print("🌐 Starting web server...")
-    httpd = start_web_server(args.port)
-    safe_print(f"🌐 Web server started on port {args.port}")
-    safe_print(f"📁 Serving files from: {os.path.abspath('web-downloads')}")
-    
     # Parse XML file
     if not os.path.exists(args.xml):
         safe_print(f"❌ XML file not found: {args.xml}")
@@ -500,19 +476,19 @@ def main():
     safe_print(f"   Failed: {test_data['failed_tests']}")
     safe_print(f"   Success Rate: {test_data['success_rate']}%")
     safe_print(f"   PDF File: {os.path.basename(pdf_file)}")
-    safe_print(f"   Download URL: {download_url}")
     
     # Create Teams payload
-    safe_print("📤 Creating Teams notification with download link...")
-    payload = create_teams_payload_with_download_link(test_data, pdf_file, download_url, args.environment)
+    safe_print("📤 Creating Teams notification with PDF...")
+    payload = create_teams_payload_with_pdf(test_data, pdf_file, args.environment)
+    
+    if not payload:
+        safe_print("❌ Failed to create Teams payload")
+        sys.exit(1)
     
     # Send notification
     safe_print("📤 Sending notification to Microsoft Teams...")
-    if send_teams_notification_with_download_link(webhook_url, payload):
-        safe_print("🎉 Teams notification with PDF download link sent successfully!")
-        safe_print(f"🌐 Web server is running on port {args.port}")
-        safe_print(f"📎 PDF download link: {download_url}")
-        safe_print("💡 Keep this terminal open to maintain the download link")
+    if send_teams_notification_with_pdf(webhook_url, payload, pdf_file):
+        safe_print("🎉 Teams notification with PDF sent successfully!")
     else:
         safe_print("❌ Teams notification failed!")
         sys.exit(1)

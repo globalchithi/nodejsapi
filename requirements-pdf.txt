@@ -1,0 +1,10 @@
+# PDF Generation Dependencies
+weasyprint>=60.0
+pdfkit>=1.0.0
+playwright>=1.40.0
+
+# Additional dependencies for weasyprint
+cffi>=1.15.0
+Pillow>=9.0.0
+cairocffi>=1.4.0
+cairosvg>=2.5.0
