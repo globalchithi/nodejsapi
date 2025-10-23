@@ -7,20 +7,20 @@ Write-Host "Generating enhanced HTML report from XML results..." -ForegroundColo
 
 # Find the XML file if not specified
 if ([string]::IsNullOrEmpty($XmlFile)) {
-    # Look for .trx files first (TRX logger - more reliable)
-    $trxFiles = Get-ChildItem -Path $OutputDir -Filter "*.trx" | Sort-Object LastWriteTime -Descending
-    if ($trxFiles.Count -gt 0) {
-        $XmlFile = $trxFiles[0].FullName
-        Write-Host "Found TRX file: $XmlFile" -ForegroundColor Green
+    # Look for TestResults.xml first (xunit logger)
+    $testResultsXml = Join-Path $OutputDir "TestResults.xml"
+    if (Test-Path $testResultsXml) {
+        $XmlFile = $testResultsXml
+        Write-Host "Found XML file: $XmlFile" -ForegroundColor Green
     } else {
-        # Look for TestResults.xml as fallback (xunit logger)
-        $testResultsXml = Join-Path $OutputDir "TestResults.xml"
-        if (Test-Path $testResultsXml) {
-            $XmlFile = $testResultsXml
-            Write-Host "Found XML file: $XmlFile" -ForegroundColor Green
+        # Look for .trx files as fallback (TRX logger)
+        $trxFiles = Get-ChildItem -Path $OutputDir -Filter "*.trx" | Sort-Object LastWriteTime -Descending
+        if ($trxFiles.Count -gt 0) {
+            $XmlFile = $trxFiles[0].FullName
+            Write-Host "Found TRX file: $XmlFile" -ForegroundColor Green
         } else {
             Write-Host "No XML test results found in $OutputDir" -ForegroundColor Red
-            Write-Host "Make sure tests have been run with --logger trx or --logger xunit" -ForegroundColor Yellow
+            Write-Host "Make sure tests have been run with --logger xunit or --logger trx" -ForegroundColor Yellow
             exit 1
         }
     }
@@ -43,22 +43,33 @@ try {
     $xmlText = Get-Content $XmlFile -Raw -Encoding UTF8
     Write-Host "XML file read successfully, length: $($xmlText.Length) characters" -ForegroundColor Green
     
-    # Check if XML is properly closed
-    if (-not $xmlText.Trim().EndsWith("</assemblies>")) {
-        Write-Host "Warning: XML file may be truncated or corrupted" -ForegroundColor Yellow
-        Write-Host "File ends with: $($xmlText.Trim().Substring($xmlText.Trim().Length - 20))" -ForegroundColor Yellow
-        
-        # Try to fix common XML issues
-        if ($xmlText.Contains(">>ies>")) {
-            $xmlText = $xmlText -replace ">>ies>", "</assemblies>"
-            Write-Host "Fixed malformed XML ending" -ForegroundColor Green
+    # Check if XML is properly closed and fix common issues
+    $xmlText = $xmlText.Trim()
+    
+    # Fix common XML corruption issues
+    if ($xmlText.Contains(">>ies>")) {
+        $xmlText = $xmlText -replace ">>ies>", "</assemblies>"
+        Write-Host "Fixed malformed XML ending: >>ies> -> </assemblies>" -ForegroundColor Green
+    }
+    
+    # Ensure proper closing
+    if (-not $xmlText.EndsWith("</assemblies>")) {
+        if ($xmlText.EndsWith("</assembly>")) {
+            $xmlText = $xmlText + "</assemblies>"
+            Write-Host "Added missing </assemblies> closing tag" -ForegroundColor Green
+        } elseif ($xmlText.EndsWith("</collection>")) {
+            $xmlText = $xmlText + "</assembly></assemblies>"
+            Write-Host "Added missing </assembly></assemblies> closing tags" -ForegroundColor Green
+        } else {
+            $xmlText = $xmlText + "</assemblies>"
+            Write-Host "Added missing </assemblies> closing tag" -ForegroundColor Green
         }
-        
-        # Ensure proper closing
-        if (-not $xmlText.Trim().EndsWith("</assemblies>")) {
-            $xmlText = $xmlText.Trim() + "</assemblies>"
-            Write-Host "Added missing closing tag" -ForegroundColor Green
-        }
+    }
+    
+    # Validate XML structure
+    if (-not $xmlText.StartsWith("<assemblies")) {
+        Write-Host "Warning: XML may not start with <assemblies> tag" -ForegroundColor Yellow
+        Write-Host "File starts with: $($xmlText.Substring(0, [Math]::Min(50, $xmlText.Length)))" -ForegroundColor Yellow
     }
     
     # Parse as XML
@@ -97,6 +108,7 @@ if ($xmlContent.assemblies -and $xmlContent.assemblies.assembly) {
     $skippedTests = [int]$assembly.skipped
     Write-Host "Using xunit format - Assembly: $($assembly.name)" -ForegroundColor Green
     Write-Host "  Total: $totalTests, Passed: $passedTests, Failed: $failedTests, Skipped: $skippedTests" -ForegroundColor Cyan
+    Write-Host "  Execution time: $($assembly.time) seconds" -ForegroundColor Cyan
 }
 # Check for TRX format
 elseif ($xmlContent.TestRun -and $xmlContent.TestRun.Results) {

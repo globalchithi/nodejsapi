@@ -72,8 +72,8 @@ if "%VERBOSE%"=="true" (
     set "TEST_COMMAND=%TEST_COMMAND% --verbosity minimal"
 )
 
-REM Add XML logger for detailed results (using TRX format for better compatibility)
-set "TEST_COMMAND=%TEST_COMMAND% --logger "trx;LogFileName=TestResults.trx""
+REM Add XML logger for detailed results (using xunit format)
+set "TEST_COMMAND=%TEST_COMMAND% --logger "xunit;LogFilePath=%REPORTS_DIR%\TestResults.xml""
 
 echo 🚀 Running tests...
 echo Command: %TEST_COMMAND%
