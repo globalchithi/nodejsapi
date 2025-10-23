@@ -61,46 +61,51 @@ namespace VaxCareApiTests.Tests
             appointmentId.Should().NotBeNullOrEmpty("Appointment ID should not be null or empty");
             appointmentId.Should().MatchRegex(@"^\d+$", "Appointment ID should be numeric");
 
-            // Create checkout request
-            var checkoutRequest = new AppointmentCheckout
+            // Create checkout request (without appointment ID in body since it's in URL)
+            var checkoutRequest = new
             {
-                TabletId = "550e8400-e29b-41d4-a716-446655440001",
-                AdministeredVaccines = new List<CheckInVaccination>
+                tabletId = "550e8400-e29b-41d4-a716-446655440001",
+                administeredVaccines = new[]
                 {
-                    new CheckInVaccination
+                    new
                     {
-                        Id = 1,
-                        ProductId = testProduct.Id,
-                        AgeIndicated = true,
-                        LotNumber = testProduct.LotNumber,
-                        Method = "Intramuscular",
-                        Site = testSite.DisplayName,
-                        DoseSeries = 1,
-                        PaymentMode = "InsurancePay",
-                        PaymentModeReason = null
+                        id = 1,
+                        productId = testProduct.Id,
+                        ageIndicated = true,
+                        lotNumber = testProduct.LotNumber,
+                        method = "Intramuscular",
+                        site = testSite.DisplayName,
+                        doseSeries = 1,
+                        paymentMode = "InsurancePay",
+                        paymentModeReason = (string?)null
                     }
                 },
-                Administered = DateTime.Now,
-                AdministeredBy = 1,
-                PresentedRiskAssessmentId = null,
-                ForcedRiskType = 0,
-                PostShotVisitPaymentModeDisplayed = "InsurancePay",
-                PhoneNumberFlowPresented = false,
-                PhoneContactConsentStatus = "NOT_APPLICABLE",
-                PhoneContactReasons = "",
-                Flags = new List<string>(),
-                PregnancyPrompt = false,
-                WeeksPregnant = null,
-                CreditCardInformation = null,
-                ActiveFeatureFlags = new List<string>(),
-                AttestHighRisk = false,
-                RiskFactors = new List<string>()
+                administered = DateTime.Now,
+                administeredBy = 1,
+                presentedRiskAssessmentId = (int?)null,
+                forcedRiskType = 0,
+                postShotVisitPaymentModeDisplayed = "InsurancePay",
+                phoneNumberFlowPresented = false,
+                phoneContactConsentStatus = "NOT_APPLICABLE",
+                phoneContactReasons = "",
+                flags = new string[0],
+                pregnancyPrompt = false,
+                weeksPregnant = (int?)null,
+                creditCardInformation = (object?)null,
+                activeFeatureFlags = new string[0],
+                attestHighRisk = false,
+                riskFactors = new string[0]
             };
 
             // Act
             var checkoutEndpoint = _checkoutEndpoint.Replace("{appointmentId}", appointmentId);
             var json = JsonSerializer.Serialize(checkoutRequest, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             var content = new StringContent(json, Encoding.UTF8, "application/json");
+            
+            // Log appointment ID and request body
+            Console.WriteLine($"🔍 Appointment ID: {appointmentId}");
+            Console.WriteLine($"🔍 Checkout Endpoint: {checkoutEndpoint}");
+            Console.WriteLine($"🔍 Request Body: {json}");
             
             try
             {
@@ -165,12 +170,12 @@ namespace VaxCareApiTests.Tests
             var appointmentId = await CreateTestAppointment(testPatient);
             appointmentId.Should().NotBeNullOrEmpty("Appointment ID should not be null or empty");
 
-            var checkoutRequest = new AppointmentCheckout
+            var checkoutRequest = new
             {
-                TabletId = "550e8400-e29b-41d4-a716-446655440001",
-                AdministeredVaccines = new List<CheckInVaccination>(),
-                Administered = DateTime.Now,
-                AdministeredBy = 1
+                tabletId = "550e8400-e29b-41d4-a716-446655440001",
+                administeredVaccines = new object[0],
+                administered = DateTime.Now,
+                administeredBy = 1
             };
 
             // Act
@@ -209,17 +214,17 @@ namespace VaxCareApiTests.Tests
         public async Task CheckoutAppointment_ShouldHandleInvalidAppointmentId()
         {
             // Arrange
-            var invalidAppointmentId = "999999";
-            var checkoutRequest = new AppointmentCheckout
+            var invalidAppointmentId = 999999;
+            var checkoutRequest = new
             {
-                TabletId = "550e8400-e29b-41d4-a716-446655440001",
-                AdministeredVaccines = new List<CheckInVaccination>(),
-                Administered = DateTime.Now,
-                AdministeredBy = 1
+                tabletId = "550e8400-e29b-41d4-a716-446655440001",
+                administeredVaccines = new object[0],
+                administered = DateTime.Now,
+                administeredBy = 1
             };
 
             // Act
-            var checkoutEndpoint = _checkoutEndpoint.Replace("{appointmentId}", invalidAppointmentId);
+            var checkoutEndpoint = _checkoutEndpoint.Replace("{appointmentId}", invalidAppointmentId.ToString());
             var json = JsonSerializer.Serialize(checkoutRequest, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             
@@ -259,10 +264,9 @@ namespace VaxCareApiTests.Tests
             appointmentId.Should().NotBeNullOrEmpty("Appointment ID should not be null or empty");
 
             // Act & Assert
-            var checkoutEndpoint = _checkoutEndpoint.Replace("{appointmentId}", appointmentId);
             Console.WriteLine($"✅ Endpoint structure validation passed");
-            Console.WriteLine($"✅ Full URL: https://vhapistg.vaxcare.com{checkoutEndpoint}");
-            Console.WriteLine($"✅ Endpoint: {checkoutEndpoint}");
+            Console.WriteLine($"✅ Full URL: https://vhapistg.vaxcare.com{_checkoutEndpoint}");
+            Console.WriteLine($"✅ Endpoint: {_checkoutEndpoint}");
             Console.WriteLine($"✅ Appointment ID: {appointmentId}");
         }
 
@@ -270,6 +274,8 @@ namespace VaxCareApiTests.Tests
         {
             try
             {
+                Console.WriteLine($"🔍 Creating appointment for patient: {testPatient.FirstName} {testPatient.LastName}");
+                
                 var appointmentRequest = new
                 {
                     newPatient = new
@@ -318,15 +324,21 @@ namespace VaxCareApiTests.Tests
                             // Try to extract appointment ID from various possible field names
                             if (jsonResponse.TryGetProperty("appointmentId", out var appointmentIdProp))
                             {
-                                return GetJsonElementValue(appointmentIdProp);
+                                var appointmentId = GetJsonElementValue(appointmentIdProp);
+                                Console.WriteLine($"✅ Extracted appointment ID: {appointmentId}");
+                                return appointmentId;
                             }
                             else if (jsonResponse.TryGetProperty("appointment_id", out var appointmentIdProp2))
                             {
-                                return GetJsonElementValue(appointmentIdProp2);
+                                var appointmentId = GetJsonElementValue(appointmentIdProp2);
+                                Console.WriteLine($"✅ Extracted appointment ID: {appointmentId}");
+                                return appointmentId;
                             }
                             else if (jsonResponse.TryGetProperty("id", out var idProp))
                             {
-                                return GetJsonElementValue(idProp);
+                                var appointmentId = GetJsonElementValue(idProp);
+                                Console.WriteLine($"✅ Extracted appointment ID: {appointmentId}");
+                                return appointmentId;
                             }
                             else if (jsonResponse.TryGetProperty("appointment", out var appointmentElement))
                             {
