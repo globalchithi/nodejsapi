@@ -255,7 +255,7 @@ $htmlContent = @"
                 <div class="stat-label">Total</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">${successRate}%</div>
+                <div class="stat-number">$successRate`%</div>
                 <div class="stat-label">Success Rate</div>
             </div>
         </div>
