@@ -20,12 +20,12 @@ public class HttpClientService : IDisposable
         _logger = logger;
         _configuration = configuration;
         
-        // Read configuration directly from IConfiguration
+        // Read configuration directly from IConfiguration with validation
         _apiConfig = new ApiConfiguration
         {
             BaseUrl = configuration["ApiConfiguration:BaseUrl"] ?? "https://vhapistg.vaxcare.com",
-            Timeout = int.Parse(configuration["ApiConfiguration:Timeout"] ?? "30000"),
-            InsecureHttps = bool.Parse(configuration["ApiConfiguration:InsecureHttps"] ?? "true")
+            Timeout = ParseIntWithDefault(configuration["ApiConfiguration:Timeout"], 30000),
+            InsecureHttps = ParseBoolWithDefault(configuration["ApiConfiguration:InsecureHttps"], true)
         };
         
         _headersConfig = new HeadersConfiguration
@@ -171,9 +171,17 @@ public class HttpClientService : IDisposable
                         _logger.LogInformation("=== FORMATTED JSON RESPONSE ===");
                         _logger.LogInformation(formattedJson);
                     }
-                    catch (Exception jsonEx)
+                    catch (System.Text.Json.JsonException jsonEx)
                     {
                         _logger.LogWarning($"Could not parse JSON response: {jsonEx.Message}");
+                    }
+                    catch (System.InvalidOperationException invalidOpEx)
+                    {
+                        _logger.LogWarning($"Invalid operation during JSON processing: {invalidOpEx.Message}");
+                    }
+                    catch (Exception jsonEx)
+                    {
+                        _logger.LogWarning($"Unexpected error during JSON processing: {jsonEx.Message}");
                     }
                 }
             }
@@ -251,9 +259,17 @@ public class HttpClientService : IDisposable
                         _logger.LogInformation("=== FORMATTED JSON RESPONSE ===");
                         _logger.LogInformation(formattedJson);
                     }
-                    catch (Exception jsonEx)
+                    catch (System.Text.Json.JsonException jsonEx)
                     {
                         _logger.LogWarning($"Could not parse JSON response: {jsonEx.Message}");
+                    }
+                    catch (System.InvalidOperationException invalidOpEx)
+                    {
+                        _logger.LogWarning($"Invalid operation during JSON processing: {invalidOpEx.Message}");
+                    }
+                    catch (Exception jsonEx)
+                    {
+                        _logger.LogWarning($"Unexpected error during JSON processing: {jsonEx.Message}");
                     }
                 }
             }
@@ -286,6 +302,40 @@ public class HttpClientService : IDisposable
             ["Connection"] = _headersConfig.Connection,
             ["User-Agent"] = _headersConfig.UserAgent
         };
+    }
+
+    private static int ParseIntWithDefault(string? value, int defaultValue)
+    {
+        if (string.IsNullOrEmpty(value))
+            return defaultValue;
+        
+        try
+        {
+            return int.Parse(value);
+        }
+        catch (FormatException)
+        {
+            return defaultValue;
+        }
+        catch (OverflowException)
+        {
+            return defaultValue;
+        }
+    }
+
+    private static bool ParseBoolWithDefault(string? value, bool defaultValue)
+    {
+        if (string.IsNullOrEmpty(value))
+            return defaultValue;
+        
+        try
+        {
+            return bool.Parse(value);
+        }
+        catch (FormatException)
+        {
+            return defaultValue;
+        }
     }
 
     public void Dispose()

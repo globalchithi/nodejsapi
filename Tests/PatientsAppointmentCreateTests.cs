@@ -115,43 +115,50 @@ namespace VaxCareApiTests.Tests
                 {
                     throw new InvalidOperationException($"Failed to parse JSON response: {ex.Message}. Response content: {responseContent}", ex);
                 }
+                catch (System.InvalidOperationException ex)
+                {
+                    throw new InvalidOperationException($"Invalid operation during JSON deserialization: {ex.Message}. Response content: {responseContent}", ex);
+                }
                 
                 // Check for common appointment ID field names (numeric IDs)
                 var hasAppointmentId = false;
                 var appointmentIdValue = "";
                 
-                if (responseJson.TryGetProperty("appointmentId", out var appointmentIdProp))
+                try
                 {
-                    hasAppointmentId = true;
-                    appointmentIdValue = appointmentIdProp.ValueKind == JsonValueKind.Number ? 
-                        appointmentIdProp.GetInt64().ToString() : appointmentIdProp.GetString() ?? "";
-                }
-                else if (responseJson.TryGetProperty("appointment_id", out var appointmentIdProp2))
-                {
-                    hasAppointmentId = true;
-                    appointmentIdValue = appointmentIdProp2.ValueKind == JsonValueKind.Number ? 
-                        appointmentIdProp2.GetInt64().ToString() : appointmentIdProp2.GetString() ?? "";
-                }
-                else if (responseJson.TryGetProperty("id", out var idProp))
-                {
-                    hasAppointmentId = true;
-                    appointmentIdValue = idProp.ValueKind == JsonValueKind.Number ? 
-                        idProp.GetInt64().ToString() : idProp.GetString() ?? "";
-                }
-                else if (responseJson.TryGetProperty("appointment", out var appointmentElement))
-                {
-                    if (appointmentElement.TryGetProperty("id", out var nestedIdProp))
+                    if (responseJson.TryGetProperty("appointmentId", out var appointmentIdProp))
                     {
                         hasAppointmentId = true;
-                        appointmentIdValue = nestedIdProp.ValueKind == JsonValueKind.Number ? 
-                            nestedIdProp.GetInt64().ToString() : nestedIdProp.GetString() ?? "";
+                        appointmentIdValue = GetJsonElementValue(appointmentIdProp);
                     }
-                    else if (appointmentElement.TryGetProperty("appointmentId", out var nestedAppointmentIdProp))
+                    else if (responseJson.TryGetProperty("appointment_id", out var appointmentIdProp2))
                     {
                         hasAppointmentId = true;
-                        appointmentIdValue = nestedAppointmentIdProp.ValueKind == JsonValueKind.Number ? 
-                            nestedAppointmentIdProp.GetInt64().ToString() : nestedAppointmentIdProp.GetString() ?? "";
+                        appointmentIdValue = GetJsonElementValue(appointmentIdProp2);
                     }
+                    else if (responseJson.TryGetProperty("id", out var idProp))
+                    {
+                        hasAppointmentId = true;
+                        appointmentIdValue = GetJsonElementValue(idProp);
+                    }
+                    else if (responseJson.TryGetProperty("appointment", out var appointmentElement))
+                    {
+                        if (appointmentElement.TryGetProperty("id", out var nestedIdProp))
+                        {
+                            hasAppointmentId = true;
+                            appointmentIdValue = GetJsonElementValue(nestedIdProp);
+                        }
+                        else if (appointmentElement.TryGetProperty("appointmentId", out var nestedAppointmentIdProp))
+                        {
+                            hasAppointmentId = true;
+                            appointmentIdValue = GetJsonElementValue(nestedAppointmentIdProp);
+                        }
+                    }
+                }
+                catch (System.InvalidOperationException ex)
+                {
+                    Console.WriteLine($"⚠️  Error accessing JSON properties: {ex.Message}");
+                    // Continue with the test even if property access fails
                 }
 
                 hasAppointmentId.Should().BeTrue($"Response should contain an appointment ID. Response: {responseContent}");
@@ -390,47 +397,54 @@ namespace VaxCareApiTests.Tests
                 {
                     throw new InvalidOperationException($"Failed to parse JSON response: {ex.Message}. Response content: {responseContent}", ex);
                 }
+                catch (System.InvalidOperationException ex)
+                {
+                    throw new InvalidOperationException($"Invalid operation during JSON deserialization: {ex.Message}. Response content: {responseContent}", ex);
+                }
                 responseJson.ValueKind.Should().Be(JsonValueKind.Object, "Response should be a valid JSON object");
 
                 // Verify response contains expected fields (including numeric appointment IDs)
                 var hasExpectedFields = false;
                 var appointmentIdValue = "";
                 
-                if (responseJson.TryGetProperty("appointmentId", out var appointmentIdProp))
+                try
                 {
-                    hasExpectedFields = true;
-                    appointmentIdValue = appointmentIdProp.ValueKind == JsonValueKind.Number ? 
-                        appointmentIdProp.GetInt64().ToString() : appointmentIdProp.GetString() ?? "";
-                }
-                else if (responseJson.TryGetProperty("appointment_id", out var appointmentIdProp2))
-                {
-                    hasExpectedFields = true;
-                    appointmentIdValue = appointmentIdProp2.ValueKind == JsonValueKind.Number ? 
-                        appointmentIdProp2.GetInt64().ToString() : appointmentIdProp2.GetString() ?? "";
-                }
-                else if (responseJson.TryGetProperty("id", out var idProp))
-                {
-                    hasExpectedFields = true;
-                    appointmentIdValue = idProp.ValueKind == JsonValueKind.Number ? 
-                        idProp.GetInt64().ToString() : idProp.GetString() ?? "";
-                }
-                else if (responseJson.TryGetProperty("appointment", out var appointmentElement))
-                {
-                    hasExpectedFields = true;
-                    if (appointmentElement.TryGetProperty("id", out var nestedIdProp))
+                    if (responseJson.TryGetProperty("appointmentId", out var appointmentIdProp))
                     {
-                        appointmentIdValue = nestedIdProp.ValueKind == JsonValueKind.Number ? 
-                            nestedIdProp.GetInt64().ToString() : nestedIdProp.GetString() ?? "";
+                        hasExpectedFields = true;
+                        appointmentIdValue = GetJsonElementValue(appointmentIdProp);
                     }
-                    else if (appointmentElement.TryGetProperty("appointmentId", out var nestedAppointmentIdProp))
+                    else if (responseJson.TryGetProperty("appointment_id", out var appointmentIdProp2))
                     {
-                        appointmentIdValue = nestedAppointmentIdProp.ValueKind == JsonValueKind.Number ? 
-                            nestedAppointmentIdProp.GetInt64().ToString() : nestedAppointmentIdProp.GetString() ?? "";
+                        hasExpectedFields = true;
+                        appointmentIdValue = GetJsonElementValue(appointmentIdProp2);
+                    }
+                    else if (responseJson.TryGetProperty("id", out var idProp))
+                    {
+                        hasExpectedFields = true;
+                        appointmentIdValue = GetJsonElementValue(idProp);
+                    }
+                    else if (responseJson.TryGetProperty("appointment", out var appointmentElement))
+                    {
+                        hasExpectedFields = true;
+                        if (appointmentElement.TryGetProperty("id", out var nestedIdProp))
+                        {
+                            appointmentIdValue = GetJsonElementValue(nestedIdProp);
+                        }
+                        else if (appointmentElement.TryGetProperty("appointmentId", out var nestedAppointmentIdProp))
+                        {
+                            appointmentIdValue = GetJsonElementValue(nestedAppointmentIdProp);
+                        }
+                    }
+                    else if (responseJson.TryGetProperty("patient", out _) || responseJson.TryGetProperty("success", out _))
+                    {
+                        hasExpectedFields = true;
                     }
                 }
-                else if (responseJson.TryGetProperty("patient", out _) || responseJson.TryGetProperty("success", out _))
+                catch (System.InvalidOperationException ex)
                 {
-                    hasExpectedFields = true;
+                    Console.WriteLine($"⚠️  Error accessing JSON properties: {ex.Message}");
+                    // Continue with the test even if property access fails
                 }
 
                 hasExpectedFields.Should().BeTrue($"Response should contain expected fields. Response: {responseContent}");
@@ -447,6 +461,27 @@ namespace VaxCareApiTests.Tests
             {
                 Console.WriteLine($"Test failed with exception: {ex.Message}");
                 throw;
+            }
+        }
+
+        private string GetJsonElementValue(JsonElement element)
+        {
+            try
+            {
+                return element.ValueKind switch
+                {
+                    JsonValueKind.Number => element.GetInt64().ToString(),
+                    JsonValueKind.String => element.GetString() ?? "",
+                    JsonValueKind.True => "true",
+                    JsonValueKind.False => "false",
+                    JsonValueKind.Null => "",
+                    _ => element.ToString()
+                };
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                Console.WriteLine($"⚠️  Error extracting value from JsonElement: {ex.Message}");
+                return element.ToString();
             }
         }
 
