@@ -52,7 +52,7 @@ def clean_and_restore():
     success, _, _ = run_command("dotnet restore", "Restoring packages")
     return success
 
-def run_tests_with_reporting(test_filter=None, output_dir="TestReports"):
+def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=None):
     """Run tests with comprehensive reporting"""
     safe_print("🧪 Running tests with enhanced reporting...")
     
@@ -117,7 +117,7 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports"):
                 safe_print("⚠️ HTML report generation failed, but tests completed")
         
         # Send Teams notification if requested
-        if args.teams:
+        if args and args.teams:
             safe_print("📤 Sending Teams notification...")
             teams_success, _, _ = run_command(
                 f"python3 send-teams-notification.py --xml \"{xml_file_to_use}\" --environment \"{args.environment}\" --browser \"{args.browser}\"",
@@ -192,7 +192,7 @@ def main():
         test_filter = categories[args.category]
     
     # Run tests
-    success = run_tests_with_reporting(test_filter, args.output)
+    success = run_tests_with_reporting(test_filter, args.output, args)
     
     if success:
         safe_print("\n🎉 Test execution completed successfully!")
