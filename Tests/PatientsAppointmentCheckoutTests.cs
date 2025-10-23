@@ -417,17 +417,18 @@ namespace VaxCareApiTests.Tests
 
         private TestPatient CreateTestPatient()
         {
+            var testPatient = TestPatients.RiskFreePatientForCheckout.Create();
             return new TestPatient
             {
-                FirstName = "Tammy",
-                LastName = "RiskFree",
-                DateOfBirth = DateTime.Now.AddYears(-40),
-                Gender = "Female",
-                Ssn = "123121234",
-                PaymentMode = "InsurancePay",
-                PrimaryInsuranceId = 1000023151,
-                PrimaryMemberId = "abc123",
-                PrimaryGroupId = ""
+                FirstName = testPatient.FirstName,
+                LastName = testPatient.LastName,
+                DateOfBirth = testPatient.DateOfBirth,
+                Gender = testPatient.Gender,
+                Ssn = testPatient.Ssn ?? "123121234",
+                PaymentMode = testPatient.PaymentMode ?? "InsurancePay",
+                PrimaryInsuranceId = testPatient.PrimaryInsuranceId ?? 1000023151,
+                PrimaryMemberId = testPatient.PrimaryMemberId ?? "abc123",
+                PrimaryGroupId = testPatient.PrimaryGroupId ?? ""
             };
         }
 
@@ -874,81 +875,86 @@ namespace VaxCareApiTests.Tests
 
         private TestPatient CreateSelfPayPatient()
         {
+            var testPatient = TestPatients.SelfPayPatient.Create();
             return new TestPatient
             {
-                FirstName = "SelfPay",
-                LastName = "Patient",
-                DateOfBirth = DateTime.Now.AddYears(-40),
-                Gender = "Male",
-                Ssn = "123121234",
-                PaymentMode = "SelfPay",
-                PrimaryInsuranceId = 0,
-                PrimaryMemberId = "",
-                PrimaryGroupId = ""
+                FirstName = testPatient.FirstName,
+                LastName = testPatient.LastName,
+                DateOfBirth = testPatient.DateOfBirth,
+                Gender = testPatient.Gender,
+                Ssn = testPatient.Ssn ?? "123121234",
+                PaymentMode = testPatient.PaymentMode ?? "SelfPay",
+                PrimaryInsuranceId = testPatient.PrimaryInsuranceId ?? 0,
+                PrimaryMemberId = testPatient.PrimaryMemberId ?? "",
+                PrimaryGroupId = testPatient.PrimaryGroupId ?? ""
             };
         }
 
         private TestPatient CreateVFCPatient()
         {
+            var testPatient = TestPatients.VFCPatient.Create();
             return new TestPatient
             {
-                FirstName = "VFC",
-                LastName = "Eligible",
-                DateOfBirth = DateTime.Now.AddYears(-10),
-                Gender = "Male",
-                Ssn = "123121234",
-                PaymentMode = "NoPay",
-                PrimaryInsuranceId = 2,
-                PrimaryMemberId = "10742845GBHZ",
-                PrimaryGroupId = ""
+                FirstName = testPatient.FirstName,
+                LastName = testPatient.LastName,
+                DateOfBirth = testPatient.DateOfBirth,
+                Gender = testPatient.Gender,
+                Ssn = testPatient.Ssn ?? "123121234",
+                PaymentMode = testPatient.PaymentMode ?? "NoPay",
+                PrimaryInsuranceId = testPatient.PrimaryInsuranceId ?? 2,
+                PrimaryMemberId = testPatient.PrimaryMemberId ?? "10742845GBHZ",
+                PrimaryGroupId = testPatient.PrimaryGroupId ?? ""
             };
         }
 
         private TestPatient CreateMedDPatient()
         {
+            var testPatient = TestPatients.MedDPatientForCopayRequired.Create();
             return new TestPatient
             {
-                FirstName = "Test",
-                LastName = "TestStatus1",
-                DateOfBirth = DateTime.Now.AddYears(-65),
-                Gender = "Male",
-                Ssn = "123121234",
-                PaymentMode = "InsurancePay",
-                PrimaryInsuranceId = 7,
-                PrimaryMemberId = "EG4TE5MK73",
-                PrimaryGroupId = ""
+                FirstName = testPatient.FirstName,
+                LastName = testPatient.LastName,
+                DateOfBirth = testPatient.DateOfBirth,
+                Gender = testPatient.Gender,
+                Ssn = testPatient.Ssn ?? "123121234",
+                PaymentMode = testPatient.PaymentMode ?? "InsurancePay",
+                PrimaryInsuranceId = testPatient.PrimaryInsuranceId ?? 7,
+                PrimaryMemberId = testPatient.PrimaryMemberId ?? "EG4TE5MK73",
+                PrimaryGroupId = testPatient.PrimaryGroupId ?? ""
             };
         }
 
         private TestPatient CreatePregnantPatient()
         {
+            var testPatient = TestPatients.PregnantPatient.Create();
             return new TestPatient
             {
-                FirstName = "Mayah",
-                LastName = "Miller",
-                DateOfBirth = DateTime.Now.AddYears(-20),
-                Gender = "Female",
-                Ssn = "123121234",
-                PaymentMode = "InsurancePay",
-                PrimaryInsuranceId = 1000023151,
-                PrimaryMemberId = "abc123",
-                PrimaryGroupId = ""
+                FirstName = testPatient.FirstName,
+                LastName = testPatient.LastName,
+                DateOfBirth = testPatient.DateOfBirth,
+                Gender = testPatient.Gender,
+                Ssn = testPatient.Ssn ?? "123121234",
+                PaymentMode = testPatient.PaymentMode ?? "InsurancePay",
+                PrimaryInsuranceId = testPatient.PrimaryInsuranceId ?? 1000023151,
+                PrimaryMemberId = testPatient.PrimaryMemberId ?? "abc123",
+                PrimaryGroupId = testPatient.PrimaryGroupId ?? ""
             };
         }
 
         private TestPatient CreatePartnerBillPatient()
         {
+            var testPatient = TestPatients.PartnerBillPatient.Create();
             return new TestPatient
             {
-                FirstName = "PB",
-                LastName = "Patient",
-                DateOfBirth = DateTime.Now.AddYears(-40),
-                Gender = "Male",
-                Ssn = "123121234",
-                PaymentMode = "InsurancePay",
-                PrimaryInsuranceId = 2,
-                PrimaryMemberId = "10742845GBHZ",
-                PrimaryGroupId = ""
+                FirstName = testPatient.FirstName,
+                LastName = testPatient.LastName,
+                DateOfBirth = testPatient.DateOfBirth,
+                Gender = testPatient.Gender,
+                Ssn = testPatient.Ssn ?? "123121234",
+                PaymentMode = testPatient.PaymentMode ?? "InsurancePay",
+                PrimaryInsuranceId = testPatient.PrimaryInsuranceId ?? 2,
+                PrimaryMemberId = testPatient.PrimaryMemberId ?? "10742845GBHZ",
+                PrimaryGroupId = testPatient.PrimaryGroupId ?? ""
             };
         }
 
