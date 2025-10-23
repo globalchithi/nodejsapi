@@ -8,8 +8,7 @@ REM Default values
 set "FILTER="
 set "OPEN_REPORTS=false"
 set "VERBOSE=false"
-set "GENERATE_PDF=true"
-set "OUTPUT_FORMAT=html,json,markdown,pdf"
+set "OUTPUT_FORMAT=html,json,markdown"
 
 REM Parse command line arguments
 :parse_args
@@ -18,12 +17,12 @@ if "%~1"=="--help" goto :show_help
 if "%~1"=="-h" goto :show_help
 if "%~1"=="--open-reports" set "OPEN_REPORTS=true" & shift & goto :parse_args
 if "%~1"=="--verbose" set "VERBOSE=true" & shift & goto :parse_args
-if "%~1"=="--no-pdf" set "GENERATE_PDF=false" & shift & goto :parse_args
+REM PDF options removed
 if "%~1"=="--format" set "OUTPUT_FORMAT=%~2" & shift & shift & goto :parse_args
 if "%~1"=="--open" set "OPEN_REPORTS=true" & shift & goto :parse_args
 if "%~1"=="-v" set "VERBOSE=true" & shift & goto :parse_args
 if "%~1"=="-o" set "OPEN_REPORTS=true" & shift & goto :parse_args
-if "%~1"=="-p" set "GENERATE_PDF=false" & shift & goto :parse_args
+REM PDF options removed
 if "%~1"=="-f" set "OUTPUT_FORMAT=%~2" & shift & shift & goto :parse_args
 
 REM If it's not a recognized option, treat it as a filter
@@ -93,11 +92,7 @@ REM Generate enhanced HTML report
 echo 📊 Generating enhanced HTML report...
 powershell -ExecutionPolicy Bypass -File "generate-enhanced-report-minimal.ps1"
 
-REM Generate PDF report if requested
-if "%GENERATE_PDF%"=="true" (
-    echo 📄 Generating PDF report...
-    powershell -ExecutionPolicy Bypass -File "generate-pdf-report.ps1" -Latest
-)
+REM PDF generation removed as requested
 
 REM List all generated reports
 echo.
@@ -109,10 +104,7 @@ for /f "delims=" %%i in ('dir /b "%REPORTS_DIR%\EnhancedTestReport_*.html" 2^>nu
     echo 📄 HTML Report: %%i
 )
 
-REM List PDF reports
-for /f "delims=" %%i in ('dir /b "%REPORTS_DIR%\TestReport_*.pdf" 2^>nul ^| sort /r') do (
-    echo 📄 PDF Report: %%i
-)
+REM PDF reports removed as requested
 
 REM List JSON reports
 for /f "delims=" %%i in ('dir /b "%REPORTS_DIR%\TestReport_*.json" 2^>nul ^| sort /r') do (
@@ -163,14 +155,13 @@ echo Options:
 echo   -h, --help          Show this help message
 echo   -o, --open          Open generated reports automatically
 echo   -v, --verbose       Show verbose output
-echo   -p, --no-pdf        Skip PDF generation
-echo   -f, --format FORMAT Output formats (html,json,markdown,pdf)
+echo   -f, --format FORMAT Output formats (html,json,markdown)
 echo.
 echo Examples:
 echo   %~nx0                                    # Run all tests with all reports
 echo   %~nx0 "FullyQualifiedName~Inventory"   # Run inventory tests with reports
 echo   %~nx0 "FullyQualifiedName~Patients"     # Run patient tests with reports
-echo   %~nx0 --no-pdf                          # Run tests without PDF generation
+REM PDF examples removed
 echo   %~nx0 --open                            # Run tests and open reports
 echo.
 exit /b 0
