@@ -7,20 +7,20 @@ Write-Host "Generating enhanced HTML report from XML results..." -ForegroundColo
 
 # Find the XML file if not specified
 if ([string]::IsNullOrEmpty($XmlFile)) {
-    # Look for TestResults.xml first (xunit logger)
-    $testResultsXml = Join-Path $OutputDir "TestResults.xml"
-    if (Test-Path $testResultsXml) {
-        $XmlFile = $testResultsXml
-        Write-Host "Found XML file: $XmlFile" -ForegroundColor Green
+    # Look for .trx files first (TRX logger - more reliable)
+    $trxFiles = Get-ChildItem -Path $OutputDir -Filter "*.trx" | Sort-Object LastWriteTime -Descending
+    if ($trxFiles.Count -gt 0) {
+        $XmlFile = $trxFiles[0].FullName
+        Write-Host "Found TRX file: $XmlFile" -ForegroundColor Green
     } else {
-        # Look for .trx files as fallback
-        $xmlFiles = Get-ChildItem -Path $OutputDir -Filter "*.trx" | Sort-Object LastWriteTime -Descending
-        if ($xmlFiles.Count -gt 0) {
-            $XmlFile = $xmlFiles[0].FullName
+        # Look for TestResults.xml as fallback (xunit logger)
+        $testResultsXml = Join-Path $OutputDir "TestResults.xml"
+        if (Test-Path $testResultsXml) {
+            $XmlFile = $testResultsXml
             Write-Host "Found XML file: $XmlFile" -ForegroundColor Green
         } else {
             Write-Host "No XML test results found in $OutputDir" -ForegroundColor Red
-            Write-Host "Make sure tests have been run with --logger xunit or --logger trx" -ForegroundColor Yellow
+            Write-Host "Make sure tests have been run with --logger trx or --logger xunit" -ForegroundColor Yellow
             exit 1
         }
     }
@@ -43,15 +43,39 @@ try {
     $xmlText = Get-Content $XmlFile -Raw -Encoding UTF8
     Write-Host "XML file read successfully, length: $($xmlText.Length) characters" -ForegroundColor Green
     
+    # Check if XML is properly closed
+    if (-not $xmlText.Trim().EndsWith("</assemblies>")) {
+        Write-Host "Warning: XML file may be truncated or corrupted" -ForegroundColor Yellow
+        Write-Host "File ends with: $($xmlText.Trim().Substring($xmlText.Trim().Length - 20))" -ForegroundColor Yellow
+        
+        # Try to fix common XML issues
+        if ($xmlText.Contains(">>ies>")) {
+            $xmlText = $xmlText -replace ">>ies>", "</assemblies>"
+            Write-Host "Fixed malformed XML ending" -ForegroundColor Green
+        }
+        
+        # Ensure proper closing
+        if (-not $xmlText.Trim().EndsWith("</assemblies>")) {
+            $xmlText = $xmlText.Trim() + "</assemblies>"
+            Write-Host "Added missing closing tag" -ForegroundColor Green
+        }
+    }
+    
     # Parse as XML
     [xml]$xmlContent = $xmlText
     Write-Host "XML file parsed successfully" -ForegroundColor Green
 } catch {
     Write-Host "Error parsing XML file: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "XML file content preview (first 500 chars):" -ForegroundColor Yellow
-    $preview = Get-Content $XmlFile -Raw -Encoding UTF8 | Select-Object -First 1
-    if ($preview.Length -gt 500) {
-        Write-Host $preview.Substring(0, 500) -ForegroundColor Gray
+    Write-Host "XML file content preview (last 100 chars):" -ForegroundColor Yellow
+    $preview = Get-Content $XmlFile -Raw -Encoding UTF8
+    if ($preview.Length -gt 100) {
+        Write-Host $preview.Substring($preview.Length - 100) -ForegroundColor Gray
+    } else {
+        Write-Host $preview -ForegroundColor Gray
+    }
+    Write-Host "XML file content preview (first 200 chars):" -ForegroundColor Yellow
+    if ($preview.Length -gt 200) {
+        Write-Host $preview.Substring(0, 200) -ForegroundColor Gray
     } else {
         Write-Host $preview -ForegroundColor Gray
     }
