@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 """
-Enhanced HTML Report Generator - Windows Compatible Version
-This script parses XML test results and generates a comprehensive HTML report
-No Unicode emojis to avoid Windows encoding issues
+Enhanced HTML Report Generator - Robust XML Parser
+This script handles malformed XML files and generates comprehensive HTML reports
 """
 
 import os
 import sys
-import xml.etree.ElementTree as ET
+import re
 from datetime import datetime
 import argparse
-import re
 
 def clean_xml_content(xml_content):
     """Clean and fix malformed XML content"""
@@ -32,36 +30,6 @@ def clean_xml_content(xml_content):
                 break
     
     return '\n'.join(cleaned_lines)
-
-def parse_xml_file(xml_file):
-    """Parse XML file with robust error handling"""
-    try:
-        # Try different encodings
-        encodings = ['utf-8', 'utf-8-sig', 'ascii', 'latin-1']
-        
-        for encoding in encodings:
-            try:
-                print(f"Trying encoding: {encoding}")
-                with open(xml_file, 'r', encoding=encoding) as f:
-                    content = f.read()
-                
-                # Clean the content first
-                content = clean_xml_content(content)
-                
-                # Try to parse as XML
-                tree = ET.fromstring(content)
-                print(f"Successfully loaded XML with {encoding} encoding")
-                return tree
-            except Exception as e:
-                print(f"{encoding} encoding failed: {e}")
-                continue
-        
-        raise Exception("All encoding methods failed")
-        
-    except Exception as e:
-        print(f"Error parsing XML file: {e}")
-        print("Trying regex fallback...")
-        return parse_xml_with_regex(xml_file)
 
 def parse_xml_with_regex(xml_file):
     """Parse XML using regex as fallback when XML parsing fails"""
@@ -132,19 +100,49 @@ def parse_xml_with_regex(xml_file):
         'test_details': test_details
     }
 
-def extract_test_data(tree):
+def parse_xml_file(xml_file):
+    """Parse XML file with multiple fallback methods"""
+    print("Parsing XML file with robust methods...")
+    
+    # Try different encodings and methods
+    encodings = ['utf-8', 'utf-8-sig', 'ascii', 'latin-1']
+    
+    for encoding in encodings:
+        try:
+            print(f"Trying encoding: {encoding}")
+            with open(xml_file, 'r', encoding=encoding) as f:
+                content = f.read()
+            
+            # Clean the content first
+            content = clean_xml_content(content)
+            
+            # Try to parse as XML
+            try:
+                import xml.etree.ElementTree as ET
+                tree = ET.fromstring(content)
+                print(f"Successfully parsed XML with {encoding} encoding")
+                
+                # Extract data from XML tree
+                return extract_from_xml_tree(tree)
+            except Exception as xml_error:
+                print(f"XML parsing failed with {encoding}: {xml_error}")
+                # Fall back to regex parsing
+                return parse_xml_with_regex(xml_file)
+                
+        except Exception as e:
+            print(f"{encoding} encoding failed: {e}")
+            continue
+    
+    # If all encodings fail, try regex parsing
+    print("All XML parsing methods failed, using regex fallback...")
+    return parse_xml_with_regex(xml_file)
+
+def extract_from_xml_tree(tree):
     """Extract test data from XML tree"""
-    total_tests = 0
-    passed_tests = 0
-    failed_tests = 0
-    skipped_tests = 0
     test_details = []
     
     # Find all test elements
     for test in tree.findall('.//test'):
-        total_tests += 1
-        
-        # Extract attributes
         test_name = test.get('name', 'Unknown Test')
         test_result = test.get('result', 'Unknown')
         test_time = float(test.get('time', 0))
@@ -159,15 +157,6 @@ def extract_test_data(tree):
         # Format display name
         display_name = test_name.split('.')[-1].replace('_', ' ')
         
-        # Count results
-        if test_result == 'Pass':
-            passed_tests += 1
-        elif test_result == 'Fail':
-            failed_tests += 1
-        elif test_result == 'Skip':
-            skipped_tests += 1
-        
-        # Add to test details
         test_details.append({
             'name': display_name,
             'full_name': test_name,
@@ -178,7 +167,11 @@ def extract_test_data(tree):
             'status_icon': '&#10004;' if test_result == 'Pass' else '&#10008;' if test_result == 'Fail' else '&#9193;'
         })
     
-    # Calculate success rate
+    # Calculate statistics
+    total_tests = len(test_details)
+    passed_tests = len([t for t in test_details if t['result'] == 'Pass'])
+    failed_tests = len([t for t in test_details if t['result'] == 'Fail'])
+    skipped_tests = len([t for t in test_details if t['result'] == 'Skip'])
     success_rate = round((passed_tests / total_tests) * 100, 1) if total_tests > 0 else 0
     
     return {
@@ -223,6 +216,7 @@ def generate_html_report(data, output_path):
         .status-skipped {{ color: #ffc107; font-weight: bold; }}
         .duration {{ font-family: monospace; background: #f8f9fa; padding: 2px 6px; border-radius: 3px; }}
         .footer {{ text-align: center; margin-top: 30px; color: #666; }}
+        .warning {{ background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0; }}
     </style>
 </head>
 <body>
@@ -301,7 +295,7 @@ def generate_html_report(data, output_path):
         return False
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate enhanced HTML test report')
+    parser = argparse.ArgumentParser(description='Generate enhanced HTML test report with robust XML parsing')
     parser.add_argument('--xml', default='TestReports/TestResults.xml', help='XML file path')
     parser.add_argument('--output', default='TestReports', help='Output directory')
     
@@ -313,7 +307,7 @@ def main():
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     html_report_path = os.path.join(args.output, f'EnhancedTestReport_{timestamp}.html')
     
-    print("Generating enhanced HTML report with Python...")
+    print("Generating enhanced HTML report with robust XML parsing...")
     
     # Check if XML file exists
     if not os.path.exists(args.xml):
@@ -321,8 +315,7 @@ def main():
         sys.exit(1)
     
     # Parse XML and extract data
-    tree = parse_xml_file(args.xml)
-    data = extract_test_data(tree)
+    data = parse_xml_file(args.xml)
     
     # Print statistics
     print("Test Statistics:")
