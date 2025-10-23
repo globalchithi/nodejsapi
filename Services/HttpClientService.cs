@@ -109,8 +109,53 @@ public class HttpClientService : IDisposable
             
             var response = await _httpClient.GetAsync(endpoint);
             
+            // Log response details
             _logger.LogInformation($"Response Status: {response.StatusCode}");
-            _logger.LogInformation($"Response Headers: {string.Join(", ", response.Headers.Select(h => $"{h.Key}: {string.Join(", ", h.Value)}"))}");
+            _logger.LogInformation($"Response Reason: {response.ReasonPhrase}");
+            _logger.LogInformation($"Response Version: {response.Version}");
+            
+            // Log response headers
+            _logger.LogInformation("=== RESPONSE HEADERS ===");
+            foreach (var header in response.Headers)
+            {
+                _logger.LogInformation($"  {header.Key}: {string.Join(", ", header.Value)}");
+            }
+            
+            // Log content headers
+            if (response.Content != null)
+            {
+                _logger.LogInformation("=== CONTENT HEADERS ===");
+                foreach (var header in response.Content.Headers)
+                {
+                    _logger.LogInformation($"  {header.Key}: {string.Join(", ", header.Value)}");
+                }
+                
+                // Log response body
+                var content = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("=== RESPONSE BODY ===");
+                _logger.LogInformation($"Content Length: {content.Length} characters");
+                _logger.LogInformation($"Content Type: {response.Content.Headers.ContentType}");
+                
+                // Log first 1000 characters of response body
+                var preview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
+                _logger.LogInformation($"Response Body Preview:\n{preview}");
+                
+                // If it's JSON, try to format it
+                if (response.Content.Headers.ContentType?.MediaType?.Contains("json") == true)
+                {
+                    try
+                    {
+                        var jsonObject = System.Text.Json.JsonSerializer.Deserialize<object>(content);
+                        var formattedJson = System.Text.Json.JsonSerializer.Serialize(jsonObject, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                        _logger.LogInformation("=== FORMATTED JSON RESPONSE ===");
+                        _logger.LogInformation(formattedJson);
+                    }
+                    catch (Exception jsonEx)
+                    {
+                        _logger.LogWarning($"Could not parse JSON response: {jsonEx.Message}");
+                    }
+                }
+            }
             
             return response;
         }
