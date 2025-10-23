@@ -24,7 +24,22 @@ if (-not (Test-Path $XmlFile)) {
 
 # Load and parse XML
 try {
-    [xml]$xmlContent = Get-Content $XmlFile -Raw -Encoding UTF8
+    Write-Host "Loading XML file: $XmlFile" -ForegroundColor Yellow
+    
+    # Try different methods to load XML
+    $xmlContent = $null
+    try {
+        [xml]$xmlContent = Get-Content $XmlFile -Raw -Encoding UTF8
+    } catch {
+        Write-Host "UTF8 encoding failed, trying default encoding..." -ForegroundColor Yellow
+        [xml]$xmlContent = Get-Content $XmlFile -Raw
+    }
+    
+    if ($xmlContent -eq $null) {
+        throw "Failed to load XML file"
+    }
+    
+    Write-Host "XML loaded successfully" -ForegroundColor Green
     
     # Extract test statistics
     $totalTests = 0
@@ -33,14 +48,27 @@ try {
     $skippedTests = 0
     $testDetails = @()
     
-    # Parse test results
-    $testCases = $xmlContent.SelectNodes("//test")
+    # Parse test results - try different XPath expressions
+    $testCases = $null
+    try {
+        $testCases = $xmlContent.SelectNodes("//test")
+    } catch {
+        Write-Host "XPath '//test' failed, trying alternative..." -ForegroundColor Yellow
+        $testCases = $xmlContent.assemblies.assembly.collection.test
+    }
+    
+    if ($testCases -eq $null -or $testCases.Count -eq 0) {
+        Write-Host "No test cases found in XML" -ForegroundColor Yellow
+        $testCases = @()
+    }
     foreach ($test in $testCases) {
         $totalTests++
-        $testName = $test.GetAttribute("name")
-        $testResult = $test.GetAttribute("result")
-        $testTime = [double]$test.GetAttribute("time")
-        $testType = $test.GetAttribute("type")
+        
+        # Safely get attributes with fallbacks
+        $testName = if ($test.GetAttribute("name")) { $test.GetAttribute("name") } else { "Unknown Test" }
+        $testResult = if ($test.GetAttribute("result")) { $test.GetAttribute("result") } else { "Unknown" }
+        $testTime = try { [double]$test.GetAttribute("time") } catch { 0.0 }
+        $testType = if ($test.GetAttribute("type")) { $test.GetAttribute("type") } else { "Unknown" }
         
         # Extract class name from type
         $className = if ($testType) { 
