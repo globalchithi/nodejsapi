@@ -129,11 +129,11 @@ REM Generate enhanced HTML report
 echo 📊 Generating enhanced HTML report...
 powershell -ExecutionPolicy Bypass -File "generate-enhanced-report-minimal.ps1"
 
-REM Send Teams notification if enabled and webhook URL is provided
+REM Parse test results and send to Teams if enabled
 if "%SEND_TEAMS_NOTIFICATION%"=="true" (
     if not "%TEAMS_WEBHOOK_URL%"=="" (
-        echo 📢 Sending test results to Microsoft Teams...
-        powershell -ExecutionPolicy Bypass -File "send-teams-notification.ps1" -TeamsWebhookUrl "%TEAMS_WEBHOOK_URL%" -Environment "%ENVIRONMENT%" -Browser "%BROWSER%"
+        echo 📢 Parsing test results and sending to Microsoft Teams...
+        powershell -ExecutionPolicy Bypass -File "parse-test-results.ps1" -XmlFile "%REPORTS_DIR%\TestResults.xml" -OutputDir "%REPORTS_DIR%" -WebhookUrl "%TEAMS_WEBHOOK_URL%" -Environment "%ENVIRONMENT%" -Browser "%BROWSER%"
         if %ERRORLEVEL% neq 0 (
             echo ⚠️  Teams notification failed, but reports are available
         ) else (
