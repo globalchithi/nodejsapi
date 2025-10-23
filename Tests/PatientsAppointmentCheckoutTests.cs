@@ -322,6 +322,7 @@ namespace VaxCareApiTests.Tests
                             // Try to extract appointment ID from various possible field names
                             if (jsonResponse.TryGetProperty("appointmentId", out var appointmentIdProp))
                             {
+                                Console.WriteLine($"🔍 Found appointmentId property: {appointmentIdProp.ValueKind}");
                                 var appointmentId = GetJsonElementValue(appointmentIdProp);
                                 Console.WriteLine($"✅ Extracted appointment ID: {appointmentId}");
                                 return appointmentId;
@@ -390,7 +391,7 @@ namespace VaxCareApiTests.Tests
             {
                 return element.ValueKind switch
                 {
-                    JsonValueKind.Number => element.GetInt64().ToString(),
+                    JsonValueKind.Number => element.GetRawText(),
                     JsonValueKind.String => element.GetString() ?? "",
                     JsonValueKind.True => "true",
                     JsonValueKind.False => "false",
