@@ -13,12 +13,24 @@ mkdir -p "$OUTPUT_DIR"
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 HTML_REPORT_PATH="$OUTPUT_DIR/EnhancedTestReport_$TIMESTAMP.html"
 
-echo "📊 Generating enhanced HTML report with beautiful table..." -ForegroundColor Cyan
+echo "📊 Generating enhanced HTML report with beautiful table..."
 
 # Check if XML file exists
 if [ ! -f "$XML_FILE" ]; then
     echo "❌ XML file not found: $XML_FILE" >&2
     exit 1
+fi
+
+# Try Python version first (more reliable encoding handling)
+if command -v python3 >/dev/null 2>&1; then
+    echo "🐍 Using Python version for better encoding handling..."
+    python3 generate-enhanced-html-report.py --xml "$XML_FILE" --output "$OUTPUT_DIR"
+    if [ $? -eq 0 ]; then
+        echo "✅ Python version completed successfully!"
+        exit 0
+    else
+        echo "⚠️ Python version failed, falling back to bash version..."
+    fi
 fi
 
 # Extract test statistics
