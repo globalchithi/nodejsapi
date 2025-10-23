@@ -181,6 +181,86 @@ public class HttpClientService : IDisposable
         }
     }
 
+    public async Task<HttpResponseMessage> PostAsync(string endpoint, HttpContent content)
+    {
+        try
+        {
+            _logger.LogInformation($"Making POST request to: {_httpClient.BaseAddress}{endpoint}");
+            
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var response = await _httpClient.PostAsync(endpoint, content);
+            stopwatch.Stop();
+            
+            _logger.LogInformation($"Request completed in: {stopwatch.ElapsedMilliseconds}ms");
+            
+            // Log response details
+            _logger.LogInformation($"Response Status: {response.StatusCode}");
+            _logger.LogInformation($"Response Reason: {response.ReasonPhrase}");
+            _logger.LogInformation($"Response Version: {response.Version}");
+            
+            // Log response headers
+            _logger.LogInformation("=== RESPONSE HEADERS ===");
+            foreach (var header in response.Headers)
+            {
+                _logger.LogInformation($"  {header.Key}: {string.Join(", ", header.Value)}");
+            }
+            
+            // Log content headers
+            if (response.Content != null)
+            {
+                _logger.LogInformation("=== CONTENT HEADERS ===");
+                foreach (var header in response.Content.Headers)
+                {
+                    _logger.LogInformation($"  {header.Key}: {string.Join(", ", header.Value)}");
+                }
+                
+                // Log response body
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation("=== RESPONSE BODY ===");
+                _logger.LogInformation($"Content Length: {responseContent.Length} characters");
+                _logger.LogInformation($"Content Type: {response.Content.Headers.ContentType}");
+                
+                // Log first 2000 characters of response body
+                var preview = responseContent.Length > 2000 ? responseContent.Substring(0, 2000) + "..." : responseContent;
+                _logger.LogInformation($"Response Body Preview:\n{preview}");
+                
+                // Log full response body if it's small enough
+                if (responseContent.Length <= 5000)
+                {
+                    _logger.LogInformation($"=== FULL RESPONSE BODY ===\n{responseContent}");
+                }
+                
+                // If it's JSON, try to format it
+                if (response.Content.Headers.ContentType?.MediaType?.Contains("json") == true)
+                {
+                    try
+                    {
+                        var jsonObject = System.Text.Json.JsonSerializer.Deserialize<object>(responseContent);
+                        var formattedJson = System.Text.Json.JsonSerializer.Serialize(jsonObject, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                        _logger.LogInformation("=== FORMATTED JSON RESPONSE ===");
+                        _logger.LogInformation(formattedJson);
+                    }
+                    catch (Exception jsonEx)
+                    {
+                        _logger.LogWarning($"Could not parse JSON response: {jsonEx.Message}");
+                    }
+                }
+            }
+            
+            return response;
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP request failed");
+            throw;
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "Request timeout");
+            throw;
+        }
+    }
+
     public Dictionary<string, string> GetHeaders()
     {
         return new Dictionary<string, string>
