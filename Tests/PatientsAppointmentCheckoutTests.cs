@@ -71,29 +71,25 @@ namespace VaxCareApiTests.Tests
                     {
                         id = 1,
                         productId = testProduct.Id,
-                        ageIndicated = true,
+                        ageIndicated = 1,
                         lotNumber = testProduct.LotNumber,
                         method = "Intramuscular",
                         site = testSite.DisplayName,
                         doseSeries = 1,
-                        paymentMode = "InsurancePay",
-                        paymentModeReason = (string?)null
+                        paymentMode = "InsurancePay"
                     }
                 },
-                administered = DateTime.Now,
+                administered = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 administeredBy = 1,
-                presentedRiskAssessmentId = (int?)null,
                 forcedRiskType = 0,
                 postShotVisitPaymentModeDisplayed = "InsurancePay",
-                phoneNumberFlowPresented = false,
-                phoneContactConsentStatus = "NOT_APPLICABLE",
+                phoneNumberFlowPresented = 0,
+                phoneContactConsentStatus = "NotApplicable",
                 phoneContactReasons = "",
                 flags = new string[0],
-                pregnancyPrompt = false,
-                weeksPregnant = (int?)null,
-                creditCardInformation = (object?)null,
+                pregnancyPrompt = 0,
                 activeFeatureFlags = new string[0],
-                attestHighRisk = false,
+                attestHighRisk = 0,
                 riskFactors = new string[0]
             };
 
@@ -109,7 +105,7 @@ namespace VaxCareApiTests.Tests
             
             try
             {
-                var response = await _httpClientService.PostAsync(checkoutEndpoint, content);
+                var response = await _httpClientService.PutAsync(checkoutEndpoint, content);
 
                 // Assert
                 response.Should().NotBeNull("Response should not be null");
@@ -185,7 +181,7 @@ namespace VaxCareApiTests.Tests
             
             try
             {
-                var response = await _httpClientService.PostAsync(checkoutEndpoint, content);
+                var response = await _httpClientService.PutAsync(checkoutEndpoint, content);
 
                 // Assert
                 response.Should().NotBeNull("Response should not be null");
@@ -230,7 +226,7 @@ namespace VaxCareApiTests.Tests
             
             try
             {
-                var response = await _httpClientService.PostAsync(checkoutEndpoint, content);
+                var response = await _httpClientService.PutAsync(checkoutEndpoint, content);
 
                 // Assert
                 response.Should().NotBeNull("Response should not be null");
@@ -425,8 +421,8 @@ namespace VaxCareApiTests.Tests
         {
             return new TestProduct
             {
-                Id = 1,
-                LotNumber = "LOT123456",
+                Id = 13,
+                LotNumber = "J003535",
                 DisplayName = "Test Vaccine"
             };
         }
@@ -435,7 +431,7 @@ namespace VaxCareApiTests.Tests
         {
             return new TestSite
             {
-                DisplayName = "Left Deltoid"
+                DisplayName = "Arm - Right"
             };
         }
 
