@@ -14,7 +14,8 @@ public class TestUtilities
     public TestUtilities(IConfiguration configuration)
     {
         _configuration = configuration;
-        _headersConfig = _configuration.GetSection("Headers").Get<HeadersConfiguration>() ?? new HeadersConfiguration();
+        _headersConfig = new HeadersConfiguration();
+        _configuration.GetSection("Headers").Bind(_headersConfig);
     }
 
     public Dictionary<string, string> CreateTestHeaders(Dictionary<string, string>? overrides = null)

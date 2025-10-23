@@ -6,7 +6,7 @@ using VaxCareApiTests.Models;
 
 namespace VaxCareApiTests.Services;
 
-public class HttpClientService
+public class HttpClientService : IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<HttpClientService> _logger;
@@ -18,8 +18,32 @@ public class HttpClientService
         _httpClient = httpClient;
         _logger = logger;
         
-        _apiConfig = configuration.GetSection("ApiConfiguration").Get<ApiConfiguration>() ?? new ApiConfiguration();
-        _headersConfig = configuration.GetSection("Headers").Get<HeadersConfiguration>() ?? new HeadersConfiguration();
+        // Read configuration directly from IConfiguration
+        _apiConfig = new ApiConfiguration
+        {
+            BaseUrl = configuration["ApiConfiguration:BaseUrl"] ?? "https://vhapistg.vaxcare.com",
+            Timeout = int.Parse(configuration["ApiConfiguration:Timeout"] ?? "30000"),
+            InsecureHttps = bool.Parse(configuration["ApiConfiguration:InsecureHttps"] ?? "true")
+        };
+        
+        _headersConfig = new HeadersConfiguration
+        {
+            IsCalledByJob = configuration["Headers:IsCalledByJob"] ?? "",
+            XVaxHubIdentifier = configuration["Headers:X-VaxHub-Identifier"] ?? "",
+            Traceparent = configuration["Headers:traceparent"] ?? "",
+            MobileData = configuration["Headers:MobileData"] ?? "",
+            UserSessionId = configuration["Headers:UserSessionId"] ?? "",
+            MessageSource = configuration["Headers:MessageSource"] ?? "",
+            Host = configuration["Headers:Host"] ?? "",
+            Connection = configuration["Headers:Connection"] ?? "",
+            UserAgent = configuration["Headers:User-Agent"] ?? ""
+        };
+        
+        // Debug: Log configuration values
+        _logger.LogInformation($"BaseUrl: {_apiConfig.BaseUrl}");
+        _logger.LogInformation($"IsCalledByJob: '{_headersConfig.IsCalledByJob}'");
+        _logger.LogInformation($"XVaxHubIdentifier: '{_headersConfig.XVaxHubIdentifier}'");
+        _logger.LogInformation($"UserAgent: '{_headersConfig.UserAgent}'");
         
         ConfigureHttpClient();
     }
@@ -37,8 +61,7 @@ public class HttpClientService
         {
             // Note: In production, you should use proper certificate validation
             // This is only for testing purposes
-            ServicePointManager.ServerCertificateValidationCallback = 
-                (sender, certificate, chain, sslPolicyErrors) => true;
+            // For .NET 6.0, we'll handle this in the HttpClient configuration
         }
         
         // Add default headers
@@ -49,15 +72,33 @@ public class HttpClientService
     {
         _httpClient.DefaultRequestHeaders.Clear();
         
-        _httpClient.DefaultRequestHeaders.Add("IsCalledByJob", _headersConfig.IsCalledByJob);
-        _httpClient.DefaultRequestHeaders.Add("X-VaxHub-Identifier", _headersConfig.XVaxHubIdentifier);
-        _httpClient.DefaultRequestHeaders.Add("traceparent", _headersConfig.Traceparent);
-        _httpClient.DefaultRequestHeaders.Add("MobileData", _headersConfig.MobileData);
-        _httpClient.DefaultRequestHeaders.Add("UserSessionId", _headersConfig.UserSessionId);
-        _httpClient.DefaultRequestHeaders.Add("MessageSource", _headersConfig.MessageSource);
-        _httpClient.DefaultRequestHeaders.Add("Host", _headersConfig.Host);
-        _httpClient.DefaultRequestHeaders.Add("Connection", _headersConfig.Connection);
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", _headersConfig.UserAgent);
+        // Only add headers with non-empty values
+        if (!string.IsNullOrEmpty(_headersConfig.IsCalledByJob))
+            _httpClient.DefaultRequestHeaders.Add("IsCalledByJob", _headersConfig.IsCalledByJob);
+        
+        if (!string.IsNullOrEmpty(_headersConfig.XVaxHubIdentifier))
+            _httpClient.DefaultRequestHeaders.Add("X-VaxHub-Identifier", _headersConfig.XVaxHubIdentifier);
+        
+        if (!string.IsNullOrEmpty(_headersConfig.Traceparent))
+            _httpClient.DefaultRequestHeaders.Add("traceparent", _headersConfig.Traceparent);
+        
+        if (!string.IsNullOrEmpty(_headersConfig.MobileData))
+            _httpClient.DefaultRequestHeaders.Add("MobileData", _headersConfig.MobileData);
+        
+        if (!string.IsNullOrEmpty(_headersConfig.UserSessionId))
+            _httpClient.DefaultRequestHeaders.Add("UserSessionId", _headersConfig.UserSessionId);
+        
+        if (!string.IsNullOrEmpty(_headersConfig.MessageSource))
+            _httpClient.DefaultRequestHeaders.Add("MessageSource", _headersConfig.MessageSource);
+        
+        if (!string.IsNullOrEmpty(_headersConfig.Host))
+            _httpClient.DefaultRequestHeaders.Add("Host", _headersConfig.Host);
+        
+        if (!string.IsNullOrEmpty(_headersConfig.Connection))
+            _httpClient.DefaultRequestHeaders.Add("Connection", _headersConfig.Connection);
+        
+        if (!string.IsNullOrEmpty(_headersConfig.UserAgent))
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", _headersConfig.UserAgent);
     }
 
     public async Task<HttpResponseMessage> GetAsync(string endpoint)
@@ -99,5 +140,10 @@ public class HttpClientService
             ["Connection"] = _headersConfig.Connection,
             ["User-Agent"] = _headersConfig.UserAgent
         };
+    }
+
+    public void Dispose()
+    {
+        _httpClient?.Dispose();
     }
 }
