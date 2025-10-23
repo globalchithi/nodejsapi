@@ -52,6 +52,24 @@ try {
         Write-Host "Fixed malformed XML ending: >>ies> -> </assemblies>" -ForegroundColor Green
     }
     
+    # Fix extra characters in closing tags
+    if ($xmlText.Contains("</assemblies>s</assemblies>")) {
+        $xmlText = $xmlText -replace "</assemblies>s</assemblies>", "</assemblies>"
+        Write-Host "Fixed malformed XML ending: removed extra 's' character" -ForegroundColor Green
+    }
+    
+    # Fix other common malformed endings
+    if ($xmlText.Contains("</assemblies>")) {
+        # Remove any extra characters after </assemblies>
+        $xmlText = $xmlText -replace "</assemblies>.*$", "</assemblies>"
+        Write-Host "Cleaned up XML ending" -ForegroundColor Green
+    }
+    
+    # Additional cleanup for common XML issues
+    $xmlText = $xmlText -replace "</assemblies>\s*</assemblies>", "</assemblies>"
+    $xmlText = $xmlText -replace "</assemblies>[a-zA-Z0-9\s]*</assemblies>", "</assemblies>"
+    $xmlText = $xmlText -replace "</assemblies>\s*$", "</assemblies>"
+    
     # Handle incomplete XML by parsing what we have
     $needsClosing = $false
     if (-not $xmlText.EndsWith("</assemblies>")) {
@@ -82,6 +100,9 @@ try {
         Write-Host "Warning: XML may not start with <assemblies> tag" -ForegroundColor Yellow
         Write-Host "File starts with: $($xmlText.Substring(0, [Math]::Min(50, $xmlText.Length)))" -ForegroundColor Yellow
     }
+    
+    # Show XML ending for debugging
+    Write-Host "XML ending: $($xmlText.Substring([Math]::Max(0, $xmlText.Length - 50)))" -ForegroundColor Gray
     
     # Parse as XML
     [xml]$xmlContent = $xmlText
