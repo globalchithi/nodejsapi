@@ -123,9 +123,9 @@ def run_specific_test_categories():
         "insurance": "FullyQualifiedName~Insurance"
     }
     
-    print("📋 Available test categories:")
+    safe_print("📋 Available test categories:")
     for i, (name, filter_val) in enumerate(categories.items(), 1):
-        print(f"  {i}. {name.title()} ({filter_val})")
+        safe_print(f"  {i}. {name.title()} ({filter_val})")
     
     return categories
 
@@ -140,8 +140,8 @@ def main():
     
     args = parser.parse_args()
     
-    print("🚀 VaxCare API Test Suite - Enhanced Test Runner")
-    print("=" * 50)
+    safe_print("🚀 VaxCare API Test Suite - Enhanced Test Runner")
+    safe_print("=" * 50)
     
     # List categories if requested
     if args.list_categories:
@@ -169,11 +169,11 @@ def main():
     success = run_tests_with_reporting(test_filter, args.output)
     
     if success:
-        print("\n🎉 Test execution completed successfully!")
-        print(f"📁 Reports saved in: {args.output}")
-        print("📄 Open the HTML report to view detailed results")
+        safe_print("\n🎉 Test execution completed successfully!")
+        safe_print(f"📁 Reports saved in: {args.output}")
+        safe_print("📄 Open the HTML report to view detailed results")
     else:
-        print("\n❌ Test execution failed")
+        safe_print("\n❌ Test execution failed")
         sys.exit(1)
 
 if __name__ == "__main__":
