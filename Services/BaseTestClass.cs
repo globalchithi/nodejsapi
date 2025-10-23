@@ -64,7 +64,7 @@ namespace VaxCareApiTests.Services
     {
         public ReportingFactAttribute()
         {
-            DisplayName = "Custom Test with Reporting";
+            // Don't override the display name - let xUnit use the method name
         }
     }
 
@@ -73,7 +73,7 @@ namespace VaxCareApiTests.Services
     {
         public ReportingTheoryAttribute()
         {
-            DisplayName = "Custom Theory Test with Reporting";
+            // Don't override the display name - let xUnit use the method name
         }
     }
 }
