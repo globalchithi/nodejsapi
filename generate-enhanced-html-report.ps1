@@ -71,7 +71,7 @@ try {
             Result = $testResult
             Duration = $testTime
             DurationMs = [math]::Round($testTime * 1000, 2)
-            StatusIcon = if ($testResult -eq "Pass") { "✅" } elseif ($testResult -eq "Fail") { "❌" } else { "⏭️" }
+            StatusIcon = if ($testResult -eq "Pass") { "&#10004;" } elseif ($testResult -eq "Fail") { "&#10008;" } else { "&#9193;" }
         }
     }
     
@@ -130,34 +130,34 @@ $htmlContent = @"
 <body>
     <div class="container">
         <div class="header">
-            <h1>🧪 VaxCare API Test Report</h1>
+            <h1>&#129514; VaxCare API Test Report</h1>
             <p>Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')</p>
         </div>
         
         <div class="stats">
             <div class="stat-card passed">
                 <div class="stat-number">$passedTests</div>
-                <div class="stat-label">✅ Passed</div>
+                <div class="stat-label">&#10004; Passed</div>
             </div>
             <div class="stat-card failed">
                 <div class="stat-number">$failedTests</div>
-                <div class="stat-label">❌ Failed</div>
+                <div class="stat-label">&#10008; Failed</div>
             </div>
             <div class="stat-card skipped">
                 <div class="stat-number">$skippedTests</div>
-                <div class="stat-label">⏭️ Skipped</div>
+                <div class="stat-label">&#9193; Skipped</div>
             </div>
             <div class="stat-card total">
                 <div class="stat-number">$totalTests</div>
-                <div class="stat-label">📊 Total</div>
+                <div class="stat-label">&#128202; Total</div>
             </div>
             <div class="stat-card success-rate">
                 <div class="stat-number">$successRate%</div>
-                <div class="stat-label">🎯 Success Rate</div>
+                <div class="stat-label">&#127919; Success Rate</div>
             </div>
         </div>
         
-        <h2>📋 Test Results</h2>
+        <h2>&#128203; Test Results</h2>
         <table class="test-table">
             <thead>
                 <tr>
@@ -202,7 +202,7 @@ $htmlContent += @"
 
 # Write HTML content to file
 try {
-    $htmlContent | Out-File -FilePath $htmlReportPath -Encoding UTF8
+    $htmlContent | Out-File -FilePath $htmlReportPath -Encoding UTF8 -NoNewline
     Write-Host "HTML report generated: $htmlReportPath" -ForegroundColor Green
     Write-Host "Report Statistics:" -ForegroundColor Cyan
     Write-Host "   File: $htmlReportPath" -ForegroundColor White
