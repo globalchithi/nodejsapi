@@ -317,6 +317,14 @@ namespace VaxCareApiTests.Tests
                     {
                         try
                         {
+                            // First, try to parse as a direct number (appointment ID)
+                            if (int.TryParse(responseContent.Trim(), out var directAppointmentId))
+                            {
+                                Console.WriteLine($"✅ Direct appointment ID: {directAppointmentId}");
+                                return directAppointmentId.ToString();
+                            }
+                            
+                            // If not a direct number, try to parse as JSON
                             var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
                             
                             // Try to extract appointment ID from various possible field names
