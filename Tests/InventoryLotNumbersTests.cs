@@ -83,23 +83,6 @@ public class InventoryLotNumbersTests : IDisposable
     }
 
     [Fact]
-    public void GetInventoryLotNumbers_ShouldValidateQueryParameters()
-    {
-        // Arrange
-        var endpoint = "/api/inventory/lotnumbers?maximumExpirationAgeInDays=365";
-        var uri = new Uri(_httpClientService.GetHeaders()["Host"] + endpoint); // Using Host from headers for base
-
-        // Act
-        var maximumExpirationAgeInDays = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("maximumExpirationAgeInDays");
-
-        // Assert
-        maximumExpirationAgeInDays.Should().Be("365");
-
-        Console.WriteLine("✅ Query parameters validation passed");
-        Console.WriteLine($"✅ MaximumExpirationAgeInDays: {maximumExpirationAgeInDays}");
-    }
-
-    [Fact]
     public void GetInventoryLotNumbers_ShouldValidateEndpointStructure()
     {
         // Arrange

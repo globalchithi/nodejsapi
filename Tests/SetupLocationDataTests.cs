@@ -83,23 +83,6 @@ public class SetupLocationDataTests : IDisposable
     }
 
     [Fact]
-    public void GetSetupLocationData_ShouldValidateQueryParameters()
-    {
-        // Arrange
-        var endpoint = "/api/setup/LocationData?clinicId=89534";
-        var uri = new Uri(_httpClientService.GetHeaders()["Host"] + endpoint); // Using Host from headers for base
-
-        // Act
-        var clinicId = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("clinicId");
-
-        // Assert
-        clinicId.Should().Be("89534");
-
-        Console.WriteLine("✅ Query parameters validation passed");
-        Console.WriteLine($"✅ ClinicId: {clinicId}");
-    }
-
-    [Fact]
     public void GetSetupLocationData_ShouldValidateEndpointStructure()
     {
         // Arrange

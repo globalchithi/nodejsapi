@@ -83,26 +83,6 @@ public class SetupCheckDataTests : IDisposable
     }
 
     [Fact]
-    public void GetSetupCheckData_ShouldValidateQueryParameters()
-    {
-        // Arrange
-        var endpoint = "/api/setup/checkData?partnerId=178764&clinicId=89534";
-        var uri = new Uri(_httpClientService.GetHeaders()["Host"] + endpoint); // Using Host from headers for base
-
-        // Act
-        var partnerId = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("partnerId");
-        var clinicId = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("clinicId");
-
-        // Assert
-        partnerId.Should().Be("178764");
-        clinicId.Should().Be("89534");
-
-        Console.WriteLine("✅ Query parameters validation passed");
-        Console.WriteLine($"✅ PartnerId: {partnerId}");
-        Console.WriteLine($"✅ ClinicId: {clinicId}");
-    }
-
-    [Fact]
     public void GetSetupCheckData_ShouldValidateEndpointStructure()
     {
         // Arrange

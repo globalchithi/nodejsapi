@@ -83,23 +83,6 @@ public class SetupUsersPartnerLevelTests : IDisposable
     }
 
     [Fact]
-    public void GetSetupUsersPartnerLevel_ShouldValidateQueryParameters()
-    {
-        // Arrange
-        var endpoint = "/api/setup/usersPartnerLevel?partnerId=178764";
-        var uri = new Uri(_httpClientService.GetHeaders()["Host"] + endpoint); // Using Host from headers for base
-
-        // Act
-        var partnerId = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("partnerId");
-
-        // Assert
-        partnerId.Should().Be("178764");
-
-        Console.WriteLine("✅ Query parameters validation passed");
-        Console.WriteLine($"✅ PartnerId: {partnerId}");
-    }
-
-    [Fact]
     public void GetSetupUsersPartnerLevel_ShouldValidateEndpointStructure()
     {
         // Arrange

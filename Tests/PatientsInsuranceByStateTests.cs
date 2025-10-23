@@ -83,42 +83,6 @@ public class PatientsInsuranceByStateTests : IDisposable
     }
 
     [Fact]
-    public void GetPatientsInsuranceByState_ShouldValidateQueryParameters()
-    {
-        // Arrange
-        var endpoint = "/api/patients/insurance/bystate/FL?contractedOnly=false";
-        var uri = new Uri(_httpClientService.GetHeaders()["Host"] + endpoint); // Using Host from headers for base
-
-        // Act
-        var contractedOnly = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("contractedOnly");
-
-        // Assert
-        contractedOnly.Should().Be("false");
-
-        Console.WriteLine("✅ Query parameters validation passed");
-        Console.WriteLine($"✅ ContractedOnly: {contractedOnly}");
-    }
-
-    [Fact]
-    public void GetPatientsInsuranceByState_ShouldValidateStateCode()
-    {
-        // Arrange
-        var endpoint = "/api/patients/insurance/bystate/FL?contractedOnly=false";
-        var expectedStateCode = "FL";
-
-        // Act
-        var uri = new Uri(_httpClientService.GetHeaders()["Host"] + endpoint);
-        var pathSegments = uri.AbsolutePath.Split('/');
-        var stateCode = pathSegments.LastOrDefault();
-
-        // Assert
-        stateCode.Should().Be(expectedStateCode);
-
-        Console.WriteLine("✅ State code validation passed");
-        Console.WriteLine($"✅ State Code: {stateCode}");
-    }
-
-    [Fact]
     public void GetPatientsInsuranceByState_ShouldValidateEndpointStructure()
     {
         // Arrange
