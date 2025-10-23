@@ -52,17 +52,28 @@ try {
         Write-Host "Fixed malformed XML ending: >>ies> -> </assemblies>" -ForegroundColor Green
     }
     
-    # Ensure proper closing
+    # Handle incomplete XML by parsing what we have
+    $needsClosing = $false
     if (-not $xmlText.EndsWith("</assemblies>")) {
-        if ($xmlText.EndsWith("</assembly>")) {
+        $needsClosing = $true
+        Write-Host "XML appears incomplete, attempting to close properly" -ForegroundColor Yellow
+        
+        # Count open tags to determine what needs closing
+        $openAssemblies = ($xmlText.ToCharArray() | Where-Object { $_ -eq '<' } | Measure-Object).Count
+        $closeAssemblies = ($xmlText.ToCharArray() | Where-Object { $_ -eq '>' } | Measure-Object).Count
+        
+        # Add missing closing tags based on what's open
+        if ($xmlText.Contains("<collection") -and -not $xmlText.Contains("</collection>")) {
+            $xmlText = $xmlText + "</collection>"
+            Write-Host "Added missing </collection> tag" -ForegroundColor Green
+        }
+        if ($xmlText.Contains("<assembly") -and -not $xmlText.Contains("</assembly>")) {
+            $xmlText = $xmlText + "</assembly>"
+            Write-Host "Added missing </assembly> tag" -ForegroundColor Green
+        }
+        if ($xmlText.Contains("<assemblies") -and -not $xmlText.Contains("</assemblies>")) {
             $xmlText = $xmlText + "</assemblies>"
-            Write-Host "Added missing </assemblies> closing tag" -ForegroundColor Green
-        } elseif ($xmlText.EndsWith("</collection>")) {
-            $xmlText = $xmlText + "</assembly></assemblies>"
-            Write-Host "Added missing </assembly></assemblies> closing tags" -ForegroundColor Green
-        } else {
-            $xmlText = $xmlText + "</assemblies>"
-            Write-Host "Added missing </assemblies> closing tag" -ForegroundColor Green
+            Write-Host "Added missing </assemblies> tag" -ForegroundColor Green
         }
     }
     
@@ -77,10 +88,10 @@ try {
     Write-Host "XML file parsed successfully" -ForegroundColor Green
 } catch {
     Write-Host "Error parsing XML file: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "XML file content preview (last 100 chars):" -ForegroundColor Yellow
+    Write-Host "XML file content preview (last 200 chars):" -ForegroundColor Yellow
     $preview = Get-Content $XmlFile -Raw -Encoding UTF8
-    if ($preview.Length -gt 100) {
-        Write-Host $preview.Substring($preview.Length - 100) -ForegroundColor Gray
+    if ($preview.Length -gt 200) {
+        Write-Host $preview.Substring($preview.Length - 200) -ForegroundColor Gray
     } else {
         Write-Host $preview -ForegroundColor Gray
     }
@@ -90,61 +101,85 @@ try {
     } else {
         Write-Host $preview -ForegroundColor Gray
     }
-    exit 1
-}
-
-# Try different XML structures
-$totalTests = 0
-$passedTests = 0
-$failedTests = 0
-$skippedTests = 0
-
-# Check for xunit format
-if ($xmlContent.assemblies -and $xmlContent.assemblies.assembly) {
-    $assembly = $xmlContent.assemblies.assembly
-    $totalTests = [int]$assembly.total
-    $passedTests = [int]$assembly.passed
-    $failedTests = [int]$assembly.failed
-    $skippedTests = [int]$assembly.skipped
-    Write-Host "Using xunit format - Assembly: $($assembly.name)" -ForegroundColor Green
-    Write-Host "  Total: $totalTests, Passed: $passedTests, Failed: $failedTests, Skipped: $skippedTests" -ForegroundColor Cyan
-    Write-Host "  Execution time: $($assembly.time) seconds" -ForegroundColor Cyan
-}
-# Check for TRX format
-elseif ($xmlContent.TestRun -and $xmlContent.TestRun.Results) {
-    $results = $xmlContent.TestRun.Results.UnitTestResult
-    $totalTests = $results.Count
-    $passedTests = ($results | Where-Object { $_.outcome -eq "Passed" }).Count
-    $failedTests = ($results | Where-Object { $_.outcome -eq "Failed" }).Count
-    $skippedTests = ($results | Where-Object { $_.outcome -eq "NotExecuted" }).Count
-    Write-Host "Using TRX format" -ForegroundColor Green
-}
-# Check for other formats
-elseif ($xmlContent.TestRun) {
-    $totalTests = [int]$xmlContent.TestRun.Counter.total
-    $passedTests = [int]$xmlContent.TestRun.Counter.passed
-    $failedTests = [int]$xmlContent.TestRun.Counter.failed
-    $skippedTests = [int]$xmlContent.TestRun.Counter.notExecuted
-    Write-Host "Using TestRun format" -ForegroundColor Green
-}
-else {
-    Write-Host "Unknown XML format. Available nodes:" -ForegroundColor Yellow
-    $xmlContent.ChildNodes | ForEach-Object { Write-Host "  - $($_.Name)" -ForegroundColor Gray }
-    if ($xmlContent.assemblies) {
-        Write-Host "  assemblies node exists" -ForegroundColor Gray
-        if ($xmlContent.assemblies.assembly) {
-            Write-Host "  assembly node exists" -ForegroundColor Gray
+    
+    # Try to extract data using regex as fallback
+    Write-Host "Attempting to extract data using regex fallback..." -ForegroundColor Yellow
+    try {
+        $totalMatch = [regex]::Match($xmlText, 'total="(\d+)"')
+        $passedMatch = [regex]::Match($xmlText, 'passed="(\d+)"')
+        $failedMatch = [regex]::Match($xmlText, 'failed="(\d+)"')
+        $skippedMatch = [regex]::Match($xmlText, 'skipped="(\d+)"')
+        
+        if ($totalMatch.Success) {
+            $totalTests = [int]$totalMatch.Groups[1].Value
+            $passedTests = if ($passedMatch.Success) { [int]$passedMatch.Groups[1].Value } else { 0 }
+            $failedTests = if ($failedMatch.Success) { [int]$failedMatch.Groups[1].Value } else { 0 }
+            $skippedTests = if ($skippedMatch.Success) { [int]$skippedMatch.Groups[1].Value } else { 0 }
+            Write-Host "Extracted data using regex: Total=$totalTests, Passed=$passedTests, Failed=$failedTests, Skipped=$skippedTests" -ForegroundColor Green
         } else {
-            Write-Host "  assembly node missing" -ForegroundColor Gray
+            Write-Host "Could not extract test data from XML" -ForegroundColor Red
+            exit 1
         }
-    } else {
-        Write-Host "  assemblies node missing" -ForegroundColor Gray
+    } catch {
+        Write-Host "Regex fallback also failed: $($_.Exception.Message)" -ForegroundColor Red
+        exit 1
     }
-    Write-Host "Using default values" -ForegroundColor Yellow
-    $totalTests = 1
-    $passedTests = 1
+}
+
+# Try different XML structures (only if we didn't use regex fallback)
+if (-not $totalTests -or $totalTests -eq 0) {
+    $totalTests = 0
+    $passedTests = 0
     $failedTests = 0
     $skippedTests = 0
+
+    # Check for xunit format
+    if ($xmlContent.assemblies -and $xmlContent.assemblies.assembly) {
+        $assembly = $xmlContent.assemblies.assembly
+        $totalTests = [int]$assembly.total
+        $passedTests = [int]$assembly.passed
+        $failedTests = [int]$assembly.failed
+        $skippedTests = [int]$assembly.skipped
+        Write-Host "Using xunit format - Assembly: $($assembly.name)" -ForegroundColor Green
+        Write-Host "  Total: $totalTests, Passed: $passedTests, Failed: $failedTests, Skipped: $skippedTests" -ForegroundColor Cyan
+        Write-Host "  Execution time: $($assembly.time) seconds" -ForegroundColor Cyan
+    }
+    # Check for TRX format
+    elseif ($xmlContent.TestRun -and $xmlContent.TestRun.Results) {
+        $results = $xmlContent.TestRun.Results.UnitTestResult
+        $totalTests = $results.Count
+        $passedTests = ($results | Where-Object { $_.outcome -eq "Passed" }).Count
+        $failedTests = ($results | Where-Object { $_.outcome -eq "Failed" }).Count
+        $skippedTests = ($results | Where-Object { $_.outcome -eq "NotExecuted" }).Count
+        Write-Host "Using TRX format" -ForegroundColor Green
+    }
+    # Check for other formats
+    elseif ($xmlContent.TestRun) {
+        $totalTests = [int]$xmlContent.TestRun.Counter.total
+        $passedTests = [int]$xmlContent.TestRun.Counter.passed
+        $failedTests = [int]$xmlContent.TestRun.Counter.failed
+        $skippedTests = [int]$xmlContent.TestRun.Counter.notExecuted
+        Write-Host "Using TestRun format" -ForegroundColor Green
+    }
+    else {
+        Write-Host "Unknown XML format. Available nodes:" -ForegroundColor Yellow
+        $xmlContent.ChildNodes | ForEach-Object { Write-Host "  - $($_.Name)" -ForegroundColor Gray }
+        if ($xmlContent.assemblies) {
+            Write-Host "  assemblies node exists" -ForegroundColor Gray
+            if ($xmlContent.assemblies.assembly) {
+                Write-Host "  assembly node exists" -ForegroundColor Gray
+            } else {
+                Write-Host "  assembly node missing" -ForegroundColor Gray
+            }
+        } else {
+            Write-Host "  assemblies node missing" -ForegroundColor Gray
+        }
+        Write-Host "Using default values" -ForegroundColor Yellow
+        $totalTests = 1
+        $passedTests = 1
+        $failedTests = 0
+        $skippedTests = 0
+    }
 }
 
 $successRate = if ($totalTests -gt 0) { [math]::Round(($passedTests / $totalTests) * 100, 1) } else { 0 }
