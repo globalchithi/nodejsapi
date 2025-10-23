@@ -6,7 +6,30 @@ setlocal enabledelayedexpansion
 
 REM Load environment variables from .env file
 echo 📄 Loading environment configuration...
-powershell -ExecutionPolicy Bypass -File "load-env.ps1" -EnvFile ".env"
+
+REM Load from .env file directly
+if exist ".env" (
+    echo   Loading from .env file...
+    for /f "usebackq tokens=1,2 delims==" %%a in (".env") do (
+        if not "%%a"=="" if not "%%a:~0,1%"=="#" (
+            set "%%a=%%b"
+            echo   Set %%a=%%b
+        )
+    )
+) else (
+    echo   ⚠️  .env file not found
+)
+
+REM Load from .env.local if it exists (overrides .env)
+if exist ".env.local" (
+    echo   Loading from .env.local file...
+    for /f "usebackq tokens=1,2 delims==" %%a in (".env.local") do (
+        if not "%%a"=="" if not "%%a:~0,1%"=="#" (
+            set "%%a=%%b"
+            echo   Set %%a=%%b
+        )
+    )
+)
 
 REM Default values (can be overridden by .env file)
 set "FILTER="
@@ -21,6 +44,25 @@ if "%SEND_TEAMS_NOTIFICATION%"=="" set "SEND_TEAMS_NOTIFICATION=true"
 if "%XML_LOGGER_FORMAT%"=="" set "XML_LOGGER_FORMAT=xunit"
 if "%CI_MODE%"=="" set "CI_MODE=false"
 if "%DEBUG_MODE%"=="" set "DEBUG_MODE=false"
+
+REM Show loaded environment variables for debugging
+if "%DEBUG_MODE%"=="true" (
+    echo.
+    echo 🔍 Loaded Environment Variables:
+    echo   TEAMS_WEBHOOK_URL=%TEAMS_WEBHOOK_URL%
+    echo   SEND_TEAMS_NOTIFICATION=%SEND_TEAMS_NOTIFICATION%
+    echo   ENVIRONMENT=%ENVIRONMENT%
+    echo   BROWSER=%BROWSER%
+    echo   OPEN_REPORTS=%OPEN_REPORTS%
+    echo   VERBOSE=%VERBOSE%
+    echo   OUTPUT_FORMAT=%OUTPUT_FORMAT%
+    echo   REPORTS_DIR=%REPORTS_DIR%
+    echo   PROJECT_NAME=%PROJECT_NAME%
+    echo   XML_LOGGER_FORMAT=%XML_LOGGER_FORMAT%
+    echo   CI_MODE=%CI_MODE%
+    echo   DEBUG_MODE=%DEBUG_MODE%
+    echo.
+)
 
 REM Parse command line arguments
 :parse_args
