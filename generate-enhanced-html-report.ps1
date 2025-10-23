@@ -72,7 +72,12 @@ try {
         
         # Extract class name from type
         $className = if ($testType) { 
-            $testType.Split('.')[-2] 
+            # If type contains dots, get the last part, otherwise use the whole type
+            if ($testType.Contains('.')) {
+                $testType.Split('.')[-1]
+            } else {
+                $testType
+            }
         } else { 
             "Unknown" 
         }
@@ -153,6 +158,30 @@ $htmlContent = @"
         .status-skipped { color: #ffc107; font-weight: bold; }
         .duration { font-family: monospace; background: #f8f9fa; padding: 2px 6px; border-radius: 3px; }
         .footer { text-align: center; margin-top: 30px; color: #666; }
+        
+        /* Collapsible sections */
+        .class-section { margin: 20px 0; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .class-header { background: #f8f9fa; padding: 15px; cursor: pointer; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .class-header:hover { background: #e9ecef; }
+        .class-name { font-weight: bold; font-size: 1.1em; color: #333; }
+        .class-stats { color: #666; font-size: 0.9em; }
+        .class-toggle { font-size: 1.2em; transition: transform 0.3s ease; }
+        .class-toggle.expanded { transform: rotate(90deg); }
+        .class-content { display: none; }
+        .class-content.expanded { display: block; }
+        .class-tests { padding: 0; }
+        .class-test { padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .class-test:last-child { border-bottom: none; }
+        .class-test:hover { background: #f8f9fa; }
+        .test-info { flex-grow: 1; }
+        .test-name { font-weight: 600; color: #333; margin-bottom: 5px; }
+        .test-duration { color: #666; font-size: 0.9em; }
+        .test-status { display: flex; align-items: center; gap: 8px; }
+        .status-icon { font-size: 1.1em; }
+        .status-text { font-weight: 600; text-transform: uppercase; font-size: 0.9em; }
+        .status-passed { color: #28a745; }
+        .status-failed { color: #dc3545; }
+        .status-skipped { color: #ffc107; }
     </style>
 </head>
 <body>
@@ -185,45 +214,96 @@ $htmlContent = @"
             </div>
         </div>
         
-        <h2>&#128203; Test Results</h2>
-        <table class="test-table">
-            <thead>
-                <tr>
-                    <th>Status</th>
-                    <th>Test Name</th>
-                    <th>Class</th>
-                    <th>Duration</th>
-                </tr>
-            </thead>
-            <tbody>
+        <h2>&#128203; Test Results by Class</h2>
+        <div class="test-results-by-class">
 "@
 
-# Add test details to table
-foreach ($test in $testDetails) {
-    $statusClass = switch ($test.Result) {
-        "Pass" { "status-passed" }
-        "Fail" { "status-failed" }
-        default { "status-skipped" }
+# Group tests by class
+$testsByClass = $testDetails | Group-Object -Property Class
+
+# Add collapsible sections for each class
+foreach ($classGroup in $testsByClass) {
+    $className = $classGroup.Name
+    $classTests = $classGroup.Group
+    $classPassed = ($classTests | Where-Object { $_.Result -eq "Pass" }).Count
+    $classFailed = ($classTests | Where-Object { $_.Result -eq "Fail" }).Count
+    $classSkipped = ($classTests | Where-Object { $_.Result -eq "Skip" }).Count
+    $classTotal = $classTests.Count
+    
+    $htmlContent += @"
+            <div class="class-section">
+                <div class="class-header" onclick="toggleClass('$className')">
+                    <div>
+                        <div class="class-name">$className</div>
+                        <div class="class-stats">$classTotal tests | $classPassed passed, $classFailed failed, $classSkipped skipped</div>
+                    </div>
+                    <div class="class-toggle" id="toggle-$className">▶</div>
+                </div>
+                <div class="class-content" id="content-$className">
+                    <div class="class-tests">
+"@
+    
+    foreach ($test in $classTests) {
+        $statusClass = switch ($test.Result) {
+            "Pass" { "status-passed" }
+            "Fail" { "status-failed" }
+            default { "status-skipped" }
+        }
+        
+        $htmlContent += @"
+                        <div class="class-test">
+                            <div class="test-info">
+                                <div class="test-name">$($test.Name)</div>
+                                <div class="test-duration">Duration: $($test.DurationMs)ms</div>
+                            </div>
+                            <div class="test-status">
+                                <span class="status-icon">$($test.StatusIcon)</span>
+                                <span class="status-text $statusClass">$($test.Result)</span>
+                            </div>
+                        </div>
+"@
     }
     
     $htmlContent += @"
-                <tr>
-                    <td class="$statusClass">$($test.StatusIcon) $($test.Result)</td>
-                    <td>$($test.Name)</td>
-                    <td>$($test.Class)</td>
-                    <td><span class="duration">$($test.DurationMs)ms</span></td>
-                </tr>
+                    </div>
+                </div>
+            </div>
 "@
 }
 
 $htmlContent += @"
-            </tbody>
-        </table>
+        </div>
         
         <div class="footer">
             <p>Report generated by VaxCare API Test Suite | $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')</p>
         </div>
     </div>
+    
+    <script>
+        function toggleClass(className) {
+            const content = document.getElementById('content-' + className);
+            const toggle = document.getElementById('toggle-' + className);
+            
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                toggle.classList.remove('expanded');
+            } else {
+                content.classList.add('expanded');
+                toggle.classList.add('expanded');
+            }
+        }
+        
+        // Optional: Add keyboard support
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                const target = e.target;
+                if (target.classList.contains('class-header')) {
+                    e.preventDefault();
+                    target.click();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
 "@
