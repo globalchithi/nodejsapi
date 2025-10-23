@@ -89,7 +89,7 @@ try {
     Write-Host "   Passed: $passedTests" -ForegroundColor Green
     Write-Host "   Failed: $failedTests" -ForegroundColor Red
     Write-Host "   Skipped: $skippedTests" -ForegroundColor Yellow
-    Write-Host "   Success Rate: $successRate%" -ForegroundColor Cyan
+    Write-Host "   Success Rate: ${successRate}%" -ForegroundColor Cyan
     
 } catch {
     Write-Host "❌ Error parsing XML file: $($_.Exception.Message)" -ForegroundColor Red
@@ -558,7 +558,7 @@ try {
     Write-Host "   ✅ Passed: $passedTests" -ForegroundColor Green
     Write-Host "   ❌ Failed: $failedTests" -ForegroundColor Red
     Write-Host "   ⏭️ Skipped: $skippedTests" -ForegroundColor Yellow
-    Write-Host "   🎯 Success Rate: $successRate%" -ForegroundColor Cyan
+    Write-Host "   🎯 Success Rate: ${successRate}%" -ForegroundColor Cyan
 } catch {
     Write-Host "❌ Error writing HTML file: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
