@@ -11,31 +11,39 @@ import argparse
 from datetime import datetime
 import shutil
 
+def safe_print(text):
+    """Safely print text that may contain Unicode characters"""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        # Fallback for Windows Command Prompt
+        print(text.encode('ascii', 'replace').decode('ascii'))
+
 def run_command(command, description):
     """Run a command and return the result"""
-    print(f"🔄 {description}...")
+    safe_print(f"🔄 {description}...")
     try:
         result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
-        print(f"✅ {description} completed successfully")
+        safe_print(f"✅ {description} completed successfully")
         return True, result.stdout, result.stderr
     except subprocess.CalledProcessError as e:
-        print(f"❌ {description} failed with exit code {e.returncode}")
-        print(f"Error: {e.stderr}")
+        safe_print(f"❌ {description} failed with exit code {e.returncode}")
+        safe_print(f"Error: {e.stderr}")
         return False, e.stdout, e.stderr
 
 def check_dotnet():
     """Check if .NET is available"""
     success, stdout, stderr = run_command("dotnet --version", "Checking .NET installation")
     if success:
-        print(f"📦 .NET version: {stdout.strip()}")
+        safe_print(f"📦 .NET version: {stdout.strip()}")
         return True
     else:
-        print("❌ .NET not found. Please install .NET SDK")
+        safe_print("❌ .NET not found. Please install .NET SDK")
         return False
 
 def clean_and_restore():
     """Clean and restore the project"""
-    print("🧹 Cleaning and restoring project...")
+    safe_print("🧹 Cleaning and restoring project...")
     
     # Clean
     run_command("dotnet clean", "Cleaning project")
@@ -46,16 +54,16 @@ def clean_and_restore():
 
 def run_tests_with_reporting(test_filter=None, output_dir="TestReports"):
     """Run tests with comprehensive reporting"""
-    print("🧪 Running tests with enhanced reporting...")
+    safe_print("🧪 Running tests with enhanced reporting...")
     
     # Create output directory
     os.makedirs(output_dir, exist_ok=True)
     
     # Build the project first
-    print("🔨 Building project...")
+    safe_print("🔨 Building project...")
     build_success, _, _ = run_command("dotnet build", "Building project")
     if not build_success:
-        print("❌ Build failed. Please fix build errors first.")
+        safe_print("❌ Build failed. Please fix build errors first.")
         return False
     
     # Prepare test command
@@ -72,8 +80,8 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports"):
     success, stdout, stderr = run_command(test_cmd, "Running tests")
     
     if success:
-        print("📊 Test execution completed!")
-        print(stdout)
+        safe_print("📊 Test execution completed!")
+        safe_print(stdout)
         
         # Generate enhanced HTML report
         xml_file_to_use = xml_file
@@ -81,29 +89,29 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports"):
             # Try to find any XML file in the output directory
             fallback_xml = os.path.join(output_dir, "TestResults.xml")
             if os.path.exists(fallback_xml):
-                print(f"📄 Using existing XML file: {fallback_xml}")
+                safe_print(f"📄 Using existing XML file: {fallback_xml}")
                 xml_file_to_use = fallback_xml
             else:
-                print("⚠️ No XML test results file found")
+                safe_print("⚠️ No XML test results file found")
                 return True  # Tests completed but no XML file
         
         if os.path.exists(xml_file_to_use):
-            print("📄 Generating enhanced HTML report...")
+            safe_print("📄 Generating enhanced HTML report...")
             report_success, _, _ = run_command(
                 f"python3 generate-enhanced-html-report.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
                 "Generating HTML report"
             )
             
             if report_success:
-                print("✅ Enhanced HTML report generated successfully!")
+                safe_print("✅ Enhanced HTML report generated successfully!")
             else:
-                print("⚠️ HTML report generation failed, but tests completed")
+                safe_print("⚠️ HTML report generation failed, but tests completed")
         
         return True
     else:
-        print("❌ Test execution failed")
-        print("STDOUT:", stdout)
-        print("STDERR:", stderr)
+        safe_print("❌ Test execution failed")
+        safe_print("STDOUT:", stdout)
+        safe_print("STDERR:", stderr)
         return False
 
 def run_specific_test_categories():

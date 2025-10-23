@@ -18,18 +18,18 @@ def parse_xml_file(xml_file):
         
         for encoding in encodings:
             try:
-                print(f"Trying encoding: {encoding}")
+                safe_print(f"Trying encoding: {encoding}")
                 tree = ET.parse(xml_file, parser=ET.XMLParser(encoding=encoding))
-                print(f"✅ Successfully loaded XML with {encoding} encoding")
+                safe_print(f"✅ Successfully loaded XML with {encoding} encoding")
                 return tree
             except Exception as e:
-                print(f"❌ {encoding} encoding failed: {e}")
+                safe_print(f"❌ {encoding} encoding failed: {e}")
                 continue
         
         raise Exception("All encoding methods failed")
         
     except Exception as e:
-        print(f"Error parsing XML file: {e}")
+        safe_print(f"Error parsing XML file: {e}")
         sys.exit(1)
 
 def extract_test_data(tree):
@@ -194,11 +194,19 @@ def generate_html_report(data, output_path):
     try:
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
-        print(f"✅ HTML report generated: {output_path}")
+        safe_print(f"✅ HTML report generated: {output_path}")
         return True
     except Exception as e:
-        print(f"❌ Error writing HTML file: {e}")
+        safe_print(f"❌ Error writing HTML file: {e}")
         return False
+
+def safe_print(text):
+    """Safely print text that may contain Unicode characters"""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        # Fallback for Windows Command Prompt
+        print(text.encode('ascii', 'replace').decode('ascii'))
 
 def main():
     parser = argparse.ArgumentParser(description='Generate enhanced HTML test report')
@@ -213,11 +221,11 @@ def main():
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     html_report_path = os.path.join(args.output, f'EnhancedTestReport_{timestamp}.html')
     
-    print("📊 Generating enhanced HTML report with Python...")
+    safe_print("📊 Generating enhanced HTML report with Python...")
     
     # Check if XML file exists
     if not os.path.exists(args.xml):
-        print(f"❌ XML file not found: {args.xml}")
+        safe_print(f"❌ XML file not found: {args.xml}")
         sys.exit(1)
     
     # Parse XML and extract data
@@ -225,16 +233,16 @@ def main():
     data = extract_test_data(tree)
     
     # Print statistics
-    print("📊 Test Statistics:")
-    print(f"   Total Tests: {data['total_tests']}")
-    print(f"   Passed: {data['passed_tests']}")
-    print(f"   Failed: {data['failed_tests']}")
-    print(f"   Skipped: {data['skipped_tests']}")
-    print(f"   Success Rate: {data['success_rate']}%")
+    safe_print("📊 Test Statistics:")
+    safe_print(f"   Total Tests: {data['total_tests']}")
+    safe_print(f"   Passed: {data['passed_tests']}")
+    safe_print(f"   Failed: {data['failed_tests']}")
+    safe_print(f"   Skipped: {data['skipped_tests']}")
+    safe_print(f"   Success Rate: {data['success_rate']}%")
     
     # Generate HTML report
     if generate_html_report(data, html_report_path):
-        print("🎉 Enhanced HTML report generation completed!")
+        safe_print("🎉 Enhanced HTML report generation completed!")
     else:
         sys.exit(1)
 
