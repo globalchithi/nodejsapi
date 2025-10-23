@@ -39,12 +39,22 @@ if (-not (Test-Path $OutputDir)) {
 
 # Parse XML to extract test statistics
 try {
-    [xml]$xmlContent = Get-Content $XmlFile -Raw
-    Write-Host "XML file loaded successfully" -ForegroundColor Green
+    # Read the entire file content
+    $xmlText = Get-Content $XmlFile -Raw -Encoding UTF8
+    Write-Host "XML file read successfully, length: $($xmlText.Length) characters" -ForegroundColor Green
+    
+    # Parse as XML
+    [xml]$xmlContent = $xmlText
+    Write-Host "XML file parsed successfully" -ForegroundColor Green
 } catch {
     Write-Host "Error parsing XML file: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "XML file content preview:" -ForegroundColor Yellow
-    Get-Content $XmlFile -Head 10 | ForEach-Object { Write-Host $_ -ForegroundColor Gray }
+    Write-Host "XML file content preview (first 500 chars):" -ForegroundColor Yellow
+    $preview = Get-Content $XmlFile -Raw -Encoding UTF8 | Select-Object -First 1
+    if ($preview.Length -gt 500) {
+        Write-Host $preview.Substring(0, 500) -ForegroundColor Gray
+    } else {
+        Write-Host $preview -ForegroundColor Gray
+    }
     exit 1
 }
 
@@ -61,7 +71,8 @@ if ($xmlContent.assemblies -and $xmlContent.assemblies.assembly) {
     $passedTests = [int]$assembly.passed
     $failedTests = [int]$assembly.failed
     $skippedTests = [int]$assembly.skipped
-    Write-Host "Using xunit format" -ForegroundColor Green
+    Write-Host "Using xunit format - Assembly: $($assembly.name)" -ForegroundColor Green
+    Write-Host "  Total: $totalTests, Passed: $passedTests, Failed: $failedTests, Skipped: $skippedTests" -ForegroundColor Cyan
 }
 # Check for TRX format
 elseif ($xmlContent.TestRun -and $xmlContent.TestRun.Results) {
@@ -83,6 +94,16 @@ elseif ($xmlContent.TestRun) {
 else {
     Write-Host "Unknown XML format. Available nodes:" -ForegroundColor Yellow
     $xmlContent.ChildNodes | ForEach-Object { Write-Host "  - $($_.Name)" -ForegroundColor Gray }
+    if ($xmlContent.assemblies) {
+        Write-Host "  assemblies node exists" -ForegroundColor Gray
+        if ($xmlContent.assemblies.assembly) {
+            Write-Host "  assembly node exists" -ForegroundColor Gray
+        } else {
+            Write-Host "  assembly node missing" -ForegroundColor Gray
+        }
+    } else {
+        Write-Host "  assemblies node missing" -ForegroundColor Gray
+    }
     Write-Host "Using default values" -ForegroundColor Yellow
     $totalTests = 1
     $passedTests = 1
