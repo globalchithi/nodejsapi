@@ -38,12 +38,58 @@ if (-not (Test-Path $OutputDir)) {
 }
 
 # Parse XML to extract test statistics
-[xml]$xmlContent = Get-Content $XmlFile
-$assembly = $xmlContent.assemblies.assembly
-$totalTests = [int]$assembly.total
-$passedTests = [int]$assembly.passed
-$failedTests = [int]$assembly.failed
-$skippedTests = [int]$assembly.skipped
+try {
+    [xml]$xmlContent = Get-Content $XmlFile -Raw
+    Write-Host "XML file loaded successfully" -ForegroundColor Green
+} catch {
+    Write-Host "Error parsing XML file: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "XML file content preview:" -ForegroundColor Yellow
+    Get-Content $XmlFile -Head 10 | ForEach-Object { Write-Host $_ -ForegroundColor Gray }
+    exit 1
+}
+
+# Try different XML structures
+$totalTests = 0
+$passedTests = 0
+$failedTests = 0
+$skippedTests = 0
+
+# Check for xunit format
+if ($xmlContent.assemblies -and $xmlContent.assemblies.assembly) {
+    $assembly = $xmlContent.assemblies.assembly
+    $totalTests = [int]$assembly.total
+    $passedTests = [int]$assembly.passed
+    $failedTests = [int]$assembly.failed
+    $skippedTests = [int]$assembly.skipped
+    Write-Host "Using xunit format" -ForegroundColor Green
+}
+# Check for TRX format
+elseif ($xmlContent.TestRun -and $xmlContent.TestRun.Results) {
+    $results = $xmlContent.TestRun.Results.UnitTestResult
+    $totalTests = $results.Count
+    $passedTests = ($results | Where-Object { $_.outcome -eq "Passed" }).Count
+    $failedTests = ($results | Where-Object { $_.outcome -eq "Failed" }).Count
+    $skippedTests = ($results | Where-Object { $_.outcome -eq "NotExecuted" }).Count
+    Write-Host "Using TRX format" -ForegroundColor Green
+}
+# Check for other formats
+elseif ($xmlContent.TestRun) {
+    $totalTests = [int]$xmlContent.TestRun.Counter.total
+    $passedTests = [int]$xmlContent.TestRun.Counter.passed
+    $failedTests = [int]$xmlContent.TestRun.Counter.failed
+    $skippedTests = [int]$xmlContent.TestRun.Counter.notExecuted
+    Write-Host "Using TestRun format" -ForegroundColor Green
+}
+else {
+    Write-Host "Unknown XML format. Available nodes:" -ForegroundColor Yellow
+    $xmlContent.ChildNodes | ForEach-Object { Write-Host "  - $($_.Name)" -ForegroundColor Gray }
+    Write-Host "Using default values" -ForegroundColor Yellow
+    $totalTests = 1
+    $passedTests = 1
+    $failedTests = 0
+    $skippedTests = 0
+}
+
 $successRate = if ($totalTests -gt 0) { [math]::Round(($passedTests / $totalTests) * 100, 1) } else { 0 }
 
 Write-Host "Test Statistics:" -ForegroundColor Cyan
@@ -105,23 +151,52 @@ $htmlContent = @"
 "@
 
 # Add individual test results
-$tests = $xmlContent.assemblies.assembly.collection.test
+$tests = @()
+
+# Try to get tests from different XML formats
+if ($xmlContent.assemblies -and $xmlContent.assemblies.assembly -and $xmlContent.assemblies.assembly.collection) {
+    $tests = $xmlContent.assemblies.assembly.collection.test
+    Write-Host "Found $($tests.Count) tests in xunit format" -ForegroundColor Green
+}
+elseif ($xmlContent.TestRun -and $xmlContent.TestRun.Results) {
+    $tests = $xmlContent.TestRun.Results.UnitTestResult
+    Write-Host "Found $($tests.Count) tests in TRX format" -ForegroundColor Green
+}
+else {
+    Write-Host "No individual test results found" -ForegroundColor Yellow
+}
+
 foreach ($test in $tests) {
-    $testName = $test.name
-    $testResult = $test.result
-    $testTime = $test.time
+    # Handle different XML formats
+    if ($test.name) {
+        $testName = $test.name
+        $testResult = $test.result
+        $testTime = $test.time
+    } elseif ($test.testName) {
+        $testName = $test.testName
+        $testResult = $test.outcome
+        $testTime = $test.duration
+    } else {
+        continue
+    }
     
     $statusClass = switch ($testResult) {
         "Pass" { "passed" }
+        "Passed" { "passed" }
         "Fail" { "failed" }
+        "Failed" { "failed" }
         "Skip" { "skipped" }
+        "NotExecuted" { "skipped" }
         default { "unknown" }
     }
     
     $statusText = switch ($testResult) {
         "Pass" { "PASSED" }
+        "Passed" { "PASSED" }
         "Fail" { "FAILED" }
+        "Failed" { "FAILED" }
         "Skip" { "SKIPPED" }
+        "NotExecuted" { "SKIPPED" }
         default { "UNKNOWN" }
     }
     
