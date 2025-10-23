@@ -37,3 +37,4 @@ public class VaxHubIdentifier
     [JsonProperty("modelType")]
     public string ModelType { get; set; } = string.Empty;
 }
+

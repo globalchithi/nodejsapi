@@ -138,3 +138,4 @@ public class PatientsClinicTests : IDisposable
         _httpClientService?.Dispose();
     }
 }
+

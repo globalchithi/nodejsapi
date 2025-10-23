@@ -1,0 +1,15 @@
+# PDF Generation Dependencies for VaxCare API Test Reports
+# Install with: pip install -r requirements-pdf.txt
+
+# Primary PDF generation library
+weasyprint>=60.0
+
+# Alternative PDF generation libraries
+pdfkit>=1.0.0
+reportlab>=4.0.0
+
+# HTML parsing for reportlab
+beautifulsoup4>=4.12.0
+
+# Additional utilities
+Pillow>=10.0.0

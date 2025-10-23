@@ -108,7 +108,9 @@ Temporary Items
 
 # Test results
 TestResults/
+TestReports/
 [Tt]est[Rr]esult*/
+[Tt]est[Rr]eport*/
 *.trx
 *.coverage
 *.coveragexml
@@ -549,3 +551,4 @@ public
 # Temporary folders
 tmp/
 temp/
+
