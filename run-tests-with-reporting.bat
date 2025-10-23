@@ -6,7 +6,7 @@ setlocal enabledelayedexpansion
 
 REM Load environment variables from .env file
 echo 📄 Loading environment configuration...
-call load-env-batch.bat
+call load-env-simple.bat
 
 REM Default values (can be overridden by .env file)
 set "FILTER="
