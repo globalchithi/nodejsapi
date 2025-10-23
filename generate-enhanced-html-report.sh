@@ -23,13 +23,20 @@ fi
 
 # Try Python version first (more reliable encoding handling)
 if command -v python3 >/dev/null 2>&1; then
-    echo "🐍 Using Python version for better encoding handling..."
-    python3 generate-enhanced-html-report.py --xml "$XML_FILE" --output "$OUTPUT_DIR"
+    echo "🐍 Using Python robust parser for better XML handling..."
+    python3 generate-enhanced-html-report-robust.py --xml "$XML_FILE" --output "$OUTPUT_DIR"
     if [ $? -eq 0 ]; then
-        echo "✅ Python version completed successfully!"
+        echo "✅ Python robust parser completed successfully!"
         exit 0
     else
-        echo "⚠️ Python version failed, falling back to bash version..."
+        echo "⚠️ Robust parser failed, trying Windows-compatible version..."
+        python3 generate-enhanced-html-report-windows.py --xml "$XML_FILE" --output "$OUTPUT_DIR"
+        if [ $? -eq 0 ]; then
+            echo "✅ Python Windows-compatible parser completed successfully!"
+            exit 0
+        else
+            echo "⚠️ All Python versions failed, falling back to bash version..."
+        fi
     fi
 fi
 

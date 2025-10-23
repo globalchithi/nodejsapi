@@ -44,9 +44,13 @@ echo.
 echo Tests completed successfully!
 echo.
 
-REM Generate HTML report using Windows-compatible Python script
+REM Generate HTML report using robust Python script with fallback
 echo Generating HTML report...
-python generate-enhanced-html-report-windows.py --xml "TestReports/TestResults.xml" --output "TestReports"
+python generate-enhanced-html-report-robust.py --xml "TestReports/TestResults.xml" --output "TestReports"
+if %errorlevel% neq 0 (
+    echo Robust parser failed, trying Windows-compatible version...
+    python generate-enhanced-html-report-windows.py --xml "TestReports/TestResults.xml" --output "TestReports"
+)
 
 if %errorlevel% neq 0 (
     echo ERROR: HTML report generation failed

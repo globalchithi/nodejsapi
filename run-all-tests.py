@@ -97,10 +97,19 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports"):
         
         if os.path.exists(xml_file_to_use):
             safe_print("📄 Generating enhanced HTML report...")
+            # Try robust parser first, then fallback to Windows-compatible version
             report_success, _, _ = run_command(
-                f"python3 generate-enhanced-html-report.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
-                "Generating HTML report"
+                f"python3 generate-enhanced-html-report-robust.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
+                "Generating HTML report with robust parser"
             )
+            
+            # If robust parser fails, try Windows-compatible version
+            if not report_success:
+                safe_print("⚠️ Robust parser failed, trying Windows-compatible version...")
+                report_success, _, _ = run_command(
+                    f"python3 generate-enhanced-html-report-windows.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
+                    "Generating HTML report with Windows-compatible parser"
+                )
             
             if report_success:
                 safe_print("✅ Enhanced HTML report generated successfully!")
