@@ -1,9 +1,30 @@
 param(
-    [string]$XmlFile = "TestResults.xml",
+    [string]$XmlFile = "",
     [string]$OutputDir = "TestReports"
 )
 
 Write-Host "Generating enhanced HTML report from XML results..." -ForegroundColor Yellow
+
+# Find the XML file if not specified
+if ([string]::IsNullOrEmpty($XmlFile)) {
+    # Look for TestResults.xml first (xunit logger)
+    $testResultsXml = Join-Path $OutputDir "TestResults.xml"
+    if (Test-Path $testResultsXml) {
+        $XmlFile = $testResultsXml
+        Write-Host "Found XML file: $XmlFile" -ForegroundColor Green
+    } else {
+        # Look for .trx files as fallback
+        $xmlFiles = Get-ChildItem -Path $OutputDir -Filter "*.trx" | Sort-Object LastWriteTime -Descending
+        if ($xmlFiles.Count -gt 0) {
+            $XmlFile = $xmlFiles[0].FullName
+            Write-Host "Found XML file: $XmlFile" -ForegroundColor Green
+        } else {
+            Write-Host "No XML test results found in $OutputDir" -ForegroundColor Red
+            Write-Host "Make sure tests have been run with --logger xunit or --logger trx" -ForegroundColor Yellow
+            exit 1
+        }
+    }
+}
 
 # Check if XML file exists
 if (-not (Test-Path $XmlFile)) {
