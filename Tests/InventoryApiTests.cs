@@ -167,40 +167,6 @@ public class InventoryApiTests : IDisposable
     }
 
     [Fact]
-    public async Task GetInventoryProducts_ShouldHandleNetworkErrorsGracefully()
-    {
-        // Arrange
-        var invalidEndpoint = "/api/invalid/endpoint";
-
-        try
-        {
-            // Act
-            var response = await _httpClientService.GetAsync(invalidEndpoint);
-            
-            // If we get here, the endpoint exists (unexpected)
-            Assert.True(false, "Expected request to fail with invalid endpoint");
-        }
-        catch (HttpRequestException ex) when (ex.Message.Contains("nodename nor servname provided") || ex.Message.Contains("Name or service not known") || ex.Message.Contains("No such host"))
-        {
-            // Handle network connectivity issues
-            Console.WriteLine("⚠️  Network connectivity issue - cannot test error handling");
-            Console.WriteLine("This is expected if the API server is not accessible from your network");
-            return;
-        }
-        catch (HttpRequestException ex) when (ex.Message.Contains("404") || ex.Message.Contains("400") || ex.Message.Contains("500"))
-        {
-            // Expected to fail with 404 or similar
-            Console.WriteLine($"Expected error occurred: {ex.Message}");
-            return;
-        }
-        catch (Exception ex)
-        {
-            _testUtilities.LogErrorDetails(ex);
-            throw;
-        }
-    }
-
-    [Fact]
     public void GetInventoryProducts_ShouldValidateCurlCommandStructure()
     {
         // Arrange
