@@ -125,28 +125,12 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
         
         # Send Teams notification if requested
         if args and args.teams:
-            safe_print("📤 Sending Teams notification with HTML attachment...")
-            # Try HTML attachment version first, then SSL certificate fix, then regular version
+            safe_print("📤 Sending Teams notification...")
+            # Use the simplified Teams notification script (no Skipped/Browser fields)
             teams_success, _, _ = run_command(
-                f"python3 send-teams-notification-with-attachment.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\" --environment \"{args.environment}\"",
-                "Sending Teams notification with HTML attachment"
+                f"python3 send-teams-notification.py --xml \"{xml_file_to_use}\" --environment \"{args.environment}\"",
+                "Sending Teams notification"
             )
-            
-            # If HTML attachment version fails, try SSL certificate fix version
-            if not teams_success:
-                safe_print("⚠️ HTML attachment version failed, trying SSL certificate fix...")
-                teams_success, _, _ = run_command(
-                    f"python3 send-teams-notification-ssl-fix.py --xml \"{xml_file_to_use}\" --environment \"{args.environment}\"",
-                    "Sending Teams notification with SSL certificate fix"
-                )
-            
-            # If SSL fix version fails, try regular version
-            if not teams_success:
-                safe_print("⚠️ SSL fix version failed, trying regular version...")
-                teams_success, _, _ = run_command(
-                    f"python3 send-teams-notification.py --xml \"{xml_file_to_use}\" --environment \"{args.environment}\"",
-                    "Sending Teams notification with regular version"
-                )
             
             if teams_success:
                 safe_print("✅ Teams notification sent successfully!")
