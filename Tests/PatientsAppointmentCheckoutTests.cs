@@ -311,6 +311,8 @@ namespace VaxCareApiTests.Tests
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"🔍 Appointment creation response: {responseContent}");
+                    
                     if (!string.IsNullOrEmpty(responseContent))
                     {
                         try
@@ -360,6 +362,7 @@ namespace VaxCareApiTests.Tests
                 }
                 
                 // If we can't extract the appointment ID, return a mock ID for testing
+                Console.WriteLine("⚠️  Could not extract appointment ID from response, using fallback ID: 12345");
                 return "12345";
             }
             catch (HttpRequestException ex) when (ex.Message.Contains("nodename nor servname provided") || ex.Message.Contains("Name or service not known") || ex.Message.Contains("No such host"))
@@ -370,6 +373,7 @@ namespace VaxCareApiTests.Tests
                 Console.WriteLine("The test structure and configuration are correct");
                 
                 // Return a mock appointment ID for testing
+                Console.WriteLine("⚠️  Using fallback appointment ID: 12345 due to network connectivity issue");
                 return "12345";
             }
             catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
