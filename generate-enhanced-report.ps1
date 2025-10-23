@@ -32,7 +32,7 @@ Write-Host "   Total Tests: $totalTests" -ForegroundColor White
 Write-Host "   Passed: $passedTests" -ForegroundColor Green
 Write-Host "   Failed: $failedTests" -ForegroundColor Red
 Write-Host "   Skipped: $skippedTests" -ForegroundColor Yellow
-Write-Host "   Success Rate: $successRate%" -ForegroundColor Cyan
+Write-Host "   Success Rate: $successRate`%" -ForegroundColor Cyan
 
 # Generate comprehensive HTML report
 $htmlContent = @"
@@ -266,7 +266,7 @@ $htmlContent = @"
             <p><strong>Passed:</strong> $passedTests</p>
             <p><strong>Failed:</strong> $failedTests</p>
             <p><strong>Skipped:</strong> $skippedTests</p>
-            <p><strong>Success Rate:</strong> $successRate%</p>
+            <p><strong>Success Rate:</strong> $successRate`%</p>
             <p><strong>Execution Time:</strong> $(Get-Date)</p>
         </div>
         
@@ -295,4 +295,4 @@ Write-Host "   Total Tests: $totalTests" -ForegroundColor White
 Write-Host "   Passed: $passedTests" -ForegroundColor Green
 Write-Host "   Failed: $failedTests" -ForegroundColor Red
 Write-Host "   Skipped: $skippedTests" -ForegroundColor Yellow
-Write-Host "   Success Rate: $successRate%" -ForegroundColor Cyan
+Write-Host "   Success Rate: $successRate`%" -ForegroundColor Cyan
