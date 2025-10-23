@@ -162,3 +162,4 @@ nodejsapi/
 - `generate-enhanced-report-minimal.ps1` - HTML report generation
 - `.env` - Configuration file
 - `load-env-batch.bat` - Environment variable loader
+

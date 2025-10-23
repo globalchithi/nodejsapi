@@ -84,3 +84,4 @@ echo "   powershell -ExecutionPolicy Bypass -File \"parse-test-results.ps1\" -Ou
 echo ""
 echo "💡 To send to Teams on Windows, use:"
 echo "   parse-and-send-results.bat \"your-webhook-url\" \"Development\" \"Chrome\""
+

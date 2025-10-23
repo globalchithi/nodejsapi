@@ -90,3 +90,4 @@ if %ERRORLEVEL% equ 0 (
     echo ❌ XML parsing test failed
     exit /b 1
 )
+

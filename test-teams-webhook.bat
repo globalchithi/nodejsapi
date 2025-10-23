@@ -37,3 +37,4 @@ if %ERRORLEVEL% equ 0 (
     echo 💡 Make sure curl.exe is available on your system
     exit /b 1
 )
+

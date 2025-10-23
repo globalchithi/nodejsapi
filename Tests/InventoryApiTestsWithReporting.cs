@@ -262,3 +262,4 @@ public class InventoryApiTestsWithReporting : BaseTestClass
         base.Dispose();
     }
 }
+

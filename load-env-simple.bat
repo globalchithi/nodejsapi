@@ -24,3 +24,4 @@ if exist ".env.local" (
         )
     )
 )
+

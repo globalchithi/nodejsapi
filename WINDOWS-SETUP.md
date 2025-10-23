@@ -139,3 +139,4 @@ If you're still having issues:
 1. Run `test-env-minimal.bat` and share the output
 2. Share your `.env` file content (remove sensitive URLs)
 3. Check the error message carefully
+

@@ -224,3 +224,4 @@ namespace VaxCareApiTests.Services
         public double SuccessRate { get; set; }
     }
 }
+

@@ -47,3 +47,4 @@ if %ERRORLEVEL% neq 0 (
 ) else (
     echo ✅ Test results parsed and sent to Teams successfully!
 )
+

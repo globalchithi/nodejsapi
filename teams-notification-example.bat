@@ -56,3 +56,4 @@ echo - Failed tests will show with ❌ emoji, passed tests with ✅ emoji
 echo.
 
 pause
+
