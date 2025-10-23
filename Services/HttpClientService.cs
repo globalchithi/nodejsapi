@@ -107,7 +107,11 @@ public class HttpClientService : IDisposable
         {
             _logger.LogInformation($"Making GET request to: {_httpClient.BaseAddress}{endpoint}");
             
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var response = await _httpClient.GetAsync(endpoint);
+            stopwatch.Stop();
+            
+            _logger.LogInformation($"Request completed in: {stopwatch.ElapsedMilliseconds}ms");
             
             // Log response details
             _logger.LogInformation($"Response Status: {response.StatusCode}");
@@ -136,9 +140,15 @@ public class HttpClientService : IDisposable
                 _logger.LogInformation($"Content Length: {content.Length} characters");
                 _logger.LogInformation($"Content Type: {response.Content.Headers.ContentType}");
                 
-                // Log first 1000 characters of response body
-                var preview = content.Length > 1000 ? content.Substring(0, 1000) + "..." : content;
+                // Log first 2000 characters of response body (increased from 1000)
+                var preview = content.Length > 2000 ? content.Substring(0, 2000) + "..." : content;
                 _logger.LogInformation($"Response Body Preview:\n{preview}");
+                
+                // Log full response body if it's small enough
+                if (content.Length <= 5000)
+                {
+                    _logger.LogInformation($"=== FULL RESPONSE BODY ===\n{content}");
+                }
                 
                 // If it's JSON, try to format it
                 if (response.Content.Headers.ContentType?.MediaType?.Contains("json") == true)
