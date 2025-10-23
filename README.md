@@ -13,6 +13,11 @@ A comprehensive API testing suite for the VaxCare inventory API, converted from 
 - ✅ **Comprehensive logging** - Structured logging with Microsoft.Extensions.Logging
 - ✅ **Model validation** - Strongly-typed models for API responses
 - ✅ **Error handling** - Graceful network error handling and timeouts
+- ✅ **Automated test reporting** - Cross-platform HTML, JSON, Markdown reports
+- ✅ **Microsoft Teams integration** - Real-time notifications with Adaptive Cards
+- ✅ **XML parsing** - Automatic extraction of test statistics from xUnit/TRX logs
+- ✅ **Environment configuration** - .env file support for Teams webhooks
+- ✅ **Cross-platform scripts** - Windows (PowerShell/Batch) and macOS/Linux (Bash)
 
 ## 📁 Project Structure
 
@@ -30,7 +35,28 @@ VaxCareApiTests/
 │   └── TestUtilities.cs     # Test utility functions
 ├── Tests/
 │   └── InventoryApiTests.cs # Main API test suite
-└── README.md               # This documentation
+├── TestReports/            # Generated test reports (auto-created)
+├── .env                   # Environment configuration
+├── .env.example           # Environment template
+├── README.md              # This documentation
+├── README-TEST-PARSING.md # Test parsing documentation
+├── TEAMS-INTEGRATION-GUIDE.md # Teams integration guide
+└── Reporting Scripts/
+    ├── Windows/
+    │   ├── run-tests-with-reporting.bat      # Main test runner
+    │   ├── parse-test-results.ps1            # PowerShell parser
+    │   ├── parse-and-send-results.bat        # Batch wrapper
+    │   ├── test-parse-results.bat            # Test with sample data
+    │   ├── test-teams-webhook.bat            # Test webhook URL
+    │   ├── send-teams-simple.ps1             # Simple Teams sender
+    │   ├── send-teams-curl.bat               # Direct curl approach
+    │   ├── generate-enhanced-report-minimal.ps1 # HTML report generator
+    │   └── load-env-batch.bat                # Environment loader
+    └── macOS-Linux/
+        ├── run-tests-with-reporting.sh       # Main test runner
+        ├── parse-test-results.sh             # Bash parser
+        ├── test-parse-results.sh             # Test with sample data
+        └── generate-enhanced-report.sh       # HTML report generator
 ```
 
 ## 🛠️ Setup & Installation
@@ -89,6 +115,91 @@ dotnet watch test
 
 # Run the application (for manual testing)
 dotnet run
+```
+
+### 🚀 **Automated Test Reporting & Teams Integration**
+
+The project includes comprehensive automated test reporting with Microsoft Teams integration:
+
+#### **Cross-Platform Test Reporting**
+- **Windows**: PowerShell scripts with batch wrappers
+- **macOS/Linux**: Bash scripts for Unix-like systems
+- **Automatic XML parsing** from xUnit and TRX loggers
+- **Real-time Teams notifications** with Adaptive Cards
+
+#### **Quick Start - Automated Reporting**
+
+**Windows:**
+```cmd
+# Run tests with automatic Teams notification
+run-tests-with-reporting.bat
+
+# Parse existing results and send to Teams
+parse-and-send-results.bat "https://your-webhook-url" "Development" "Chrome"
+
+# Test with sample data
+test-parse-results.bat
+```
+
+**macOS/Linux:**
+```bash
+# Parse existing results and send to Teams
+./parse-test-results.sh "https://your-webhook-url" "Development" "Chrome"
+
+# Test with sample data
+./test-parse-results.sh
+```
+
+#### **Teams Notification Features**
+- **Real test statistics**: Total, passed, failed, skipped tests
+- **Success rate calculation**: Automatic percentage calculation
+- **Execution time formatting**: Human-readable duration
+- **Environment details**: Development, Staging, Production
+- **Adaptive Cards**: Rich Teams notifications with test data
+- **Error handling**: Robust XML parsing with auto-repair
+
+#### **Generated Reports**
+- **HTML Reports**: Enhanced with detailed test scenarios
+- **JSON Reports**: Machine-readable test data
+- **Markdown Reports**: Documentation-friendly format
+- **XML Reports**: xUnit and TRX format support
+
+#### **Environment Configuration**
+Create `.env` file for Teams integration:
+```env
+# Microsoft Teams Integration
+TEAMS_WEBHOOK_URL=https://your-webhook-url
+SEND_TEAMS_NOTIFICATION=true
+
+# Test Environment Configuration
+ENVIRONMENT=Development
+BROWSER=Chrome
+
+# Report Directory
+REPORTS_DIR=TestReports
+```
+
+#### **Sample Teams Notification**
+The system sends rich Adaptive Cards to Teams with:
+- **Test Status**: ✅ All 14 tests passed successfully!
+- **Environment**: Development
+- **Total Tests**: 14
+- **Passed**: 12
+- **Failed**: 2
+- **Success Rate**: 85.7%
+- **Duration**: 8 seconds
+- **Timestamp**: 10/23/2025, 5:00:00 PM
+
+#### **Advanced Usage**
+```bash
+# Test webhook URL
+test-teams-webhook.bat "https://your-webhook-url"
+
+# Parse specific XML file
+powershell -ExecutionPolicy Bypass -File "parse-test-results.ps1" -XmlFile "TestReports\TestResults.xml" -WebhookUrl "https://your-webhook-url"
+
+# Generate enhanced HTML report
+powershell -ExecutionPolicy Bypass -File "generate-enhanced-report-minimal.ps1"
 ```
 
 ### Test Output Examples
@@ -404,6 +515,55 @@ public async Task ApiPerformanceTest()
 3. Add your tests
 4. Run the test suite
 5. Submit a pull request
+
+## 🚀 **Quick Reference - Test Reporting & Teams Integration**
+
+### **Windows Commands**
+```cmd
+# Run tests with automatic Teams notification
+run-tests-with-reporting.bat
+
+# Parse existing results and send to Teams
+parse-and-send-results.bat "https://your-webhook-url" "Development" "Chrome"
+
+# Test with sample data
+test-parse-results.bat
+
+# Test webhook URL
+test-teams-webhook.bat "https://your-webhook-url"
+```
+
+### **macOS/Linux Commands**
+```bash
+# Parse existing results and send to Teams
+./parse-test-results.sh "https://your-webhook-url" "Development" "Chrome"
+
+# Test with sample data
+./test-parse-results.sh
+
+# Test without Teams (just parsing)
+./parse-test-results.sh
+```
+
+### **Environment Setup**
+Create `.env` file:
+```env
+TEAMS_WEBHOOK_URL=https://your-webhook-url
+SEND_TEAMS_NOTIFICATION=true
+ENVIRONMENT=Development
+BROWSER=Chrome
+```
+
+### **Generated Reports**
+- **HTML**: Enhanced with detailed test scenarios
+- **JSON**: Machine-readable test data  
+- **Markdown**: Documentation-friendly format
+- **Teams**: Rich Adaptive Cards with test statistics
+
+### **Documentation**
+- **`README-TEST-PARSING.md`** - Complete test parsing guide
+- **`TEAMS-INTEGRATION-GUIDE.md`** - Teams integration documentation
+- **`WINDOWS-SETUP.md`** - Windows-specific setup guide
 
 ## 📄 License
 
