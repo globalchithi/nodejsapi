@@ -118,12 +118,20 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
         
         # Send Teams notification if requested
         if args and args.teams:
-            safe_print("📤 Sending Teams notification...")
-            # Try SSL certificate fix version first, then fallback to regular version
+            safe_print("📤 Sending Teams notification with HTML attachment...")
+            # Try HTML attachment version first, then SSL certificate fix, then regular version
             teams_success, _, _ = run_command(
-                f"python3 send-teams-notification-ssl-fix.py --xml \"{xml_file_to_use}\" --environment \"{args.environment}\" --browser \"{args.browser}\"",
-                "Sending Teams notification with SSL certificate fix"
+                f"python3 send-teams-notification-with-attachment.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\" --environment \"{args.environment}\" --browser \"{args.browser}\"",
+                "Sending Teams notification with HTML attachment"
             )
+            
+            # If HTML attachment version fails, try SSL certificate fix version
+            if not teams_success:
+                safe_print("⚠️ HTML attachment version failed, trying SSL certificate fix...")
+                teams_success, _, _ = run_command(
+                    f"python3 send-teams-notification-ssl-fix.py --xml \"{xml_file_to_use}\" --environment \"{args.environment}\" --browser \"{args.browser}\"",
+                    "Sending Teams notification with SSL certificate fix"
+                )
             
             # If SSL fix version fails, try regular version
             if not teams_success:
@@ -141,8 +149,8 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
         return True
     else:
         safe_print("❌ Test execution failed")
-        safe_print("STDOUT:", stdout)
-        safe_print("STDERR:", stderr)
+        safe_print(f"STDOUT: {stdout}")
+        safe_print(f"STDERR: {stderr}")
         return False
 
 def run_specific_test_categories():
@@ -151,7 +159,8 @@ def run_specific_test_categories():
         "inventory": "FullyQualifiedName~Inventory",
         "patients": "FullyQualifiedName~Patients", 
         "setup": "FullyQualifiedName~Setup",
-        "insurance": "FullyQualifiedName~Insurance"
+        "insurance": "FullyQualifiedName~Insurance",
+        "appointment": "FullyQualifiedName~PatientsAppointmentCreate"
     }
     
     safe_print("📋 Available test categories:")
@@ -163,7 +172,7 @@ def run_specific_test_categories():
 def main():
     parser = argparse.ArgumentParser(description='Run all tests with enhanced HTML reporting')
     parser.add_argument('--filter', help='Test filter (e.g., "FullyQualifiedName~Inventory")')
-    parser.add_argument('--category', choices=['inventory', 'patients', 'setup', 'insurance'], 
+    parser.add_argument('--category', choices=['inventory', 'patients', 'setup', 'insurance', 'appointment'], 
                        help='Run tests by category')
     parser.add_argument('--output', default='TestReports', help='Output directory for reports')
     parser.add_argument('--clean', action='store_true', help='Clean and restore before running')
