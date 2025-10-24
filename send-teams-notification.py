@@ -14,6 +14,7 @@ import argparse
 from datetime import datetime
 import xml.etree.ElementTree as ET
 import re
+import ssl
 
 def safe_print(text):
     """Safely print text that may contain Unicode characters"""
@@ -285,8 +286,13 @@ def send_teams_notification(webhook_url, payload):
             headers={'Content-Type': 'application/json'}
         )
         
-        # Send request
-        with urllib.request.urlopen(req, timeout=30) as response:
+        # Create SSL context that doesn't verify certificates (for Teams webhooks)
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
+        # Send request with SSL context
+        with urllib.request.urlopen(req, timeout=30, context=ssl_context) as response:
             if response.status in [200, 202]:
                 safe_print("✅ Teams notification sent successfully!")
                 return True
