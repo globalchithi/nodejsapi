@@ -68,6 +68,7 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
     
     # Prepare test command
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    trx_file = os.path.join(output_dir, f"TestResults_{timestamp}.trx")
     xml_file = os.path.join(output_dir, f"TestResults_{timestamp}.xml")
     
     # Build test command
@@ -87,39 +88,62 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
         safe_print(stderr)
     
     # Generate enhanced HTML report
+    # First try to use TRX file for actual results
+    trx_file_to_use = trx_file
     xml_file_to_use = xml_file
-    if not os.path.exists(xml_file):
-        # Try to find any XML file in the output directory or subdirectories
-        import glob
-        xml_files = glob.glob(os.path.join(output_dir, "**", "TestResults_*.xml"), recursive=True)
-        if xml_files:
-            # Get the most recent XML file
-            xml_file_to_use = max(xml_files, key=os.path.getmtime)
-            safe_print(f"📄 Using latest XML file: {xml_file_to_use}")
-        else:
-            fallback_xml = os.path.join(output_dir, "TestResults.xml")
-            if os.path.exists(fallback_xml):
-                safe_print(f"📄 Using existing XML file: {fallback_xml}")
-                xml_file_to_use = fallback_xml
-            else:
-                safe_print("⚠️ No XML test results file found")
-                return success  # Return the test success status
     
-    if os.path.exists(xml_file_to_use):
-        safe_print("📄 Generating enhanced HTML report...")
-        # Try robust parser first, then fallback to Windows-compatible version
+    # Check if TRX file exists, if not try to find any TRX file
+    if not os.path.exists(trx_file):
+        import glob
+        trx_files = glob.glob(os.path.join(output_dir, "**", "TestResults_*.trx"), recursive=True)
+        if trx_files:
+            trx_file_to_use = max(trx_files, key=os.path.getmtime)
+            safe_print(f"📄 Using latest TRX file: {trx_file_to_use}")
+        else:
+            safe_print("⚠️ No TRX test results file found, falling back to XML")
+            trx_file_to_use = None
+    
+    # Try to generate report with actual results using TRX file
+    if trx_file_to_use and os.path.exists(trx_file_to_use):
+        safe_print("📄 Generating enhanced HTML report with actual results...")
         report_success, _, _ = run_command(
-            f"python3 generate-enhanced-html-report-robust.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
-            "Generating HTML report with robust parser"
+            f"python3 generate-enhanced-html-report-with-actual-results.py --trx \"{trx_file_to_use}\" --output \"{output_dir}\"",
+            "Generating HTML report with actual results"
         )
+    else:
+        # Fall back to XML file
+        if not os.path.exists(xml_file):
+            # Try to find any XML file in the output directory or subdirectories
+            import glob
+            xml_files = glob.glob(os.path.join(output_dir, "**", "TestResults_*.xml"), recursive=True)
+            if xml_files:
+                # Get the most recent XML file
+                xml_file_to_use = max(xml_files, key=os.path.getmtime)
+                safe_print(f"📄 Using latest XML file: {xml_file_to_use}")
+            else:
+                fallback_xml = os.path.join(output_dir, "TestResults.xml")
+                if os.path.exists(fallback_xml):
+                    safe_print(f"📄 Using existing XML file: {fallback_xml}")
+                    xml_file_to_use = fallback_xml
+                else:
+                    safe_print("⚠️ No XML test results file found")
+                    return success  # Return the test success status
         
-        # If robust parser fails, try Windows-compatible version
-        if not report_success:
-            safe_print("⚠️ Robust parser failed, trying Windows-compatible version...")
+        if os.path.exists(xml_file_to_use):
+            safe_print("📄 Generating enhanced HTML report...")
+            # Try robust parser first, then fallback to Windows-compatible version
             report_success, _, _ = run_command(
-                f"python3 generate-enhanced-html-report-windows.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
-                "Generating HTML report with Windows-compatible parser"
+                f"python3 generate-enhanced-html-report-robust.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
+                "Generating HTML report with robust parser"
             )
+            
+            # If robust parser fails, try Windows-compatible version
+            if not report_success:
+                safe_print("⚠️ Robust parser failed, trying Windows-compatible version...")
+                report_success, _, _ = run_command(
+                    f"python3 generate-enhanced-html-report-windows.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
+                    "Generating HTML report with Windows-compatible parser"
+                )
         
         if report_success:
             safe_print("✅ Enhanced HTML report generated successfully!")
@@ -129,11 +153,17 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
     # Send Teams notification if requested
     if args and args.teams:
         safe_print("📤 Sending Teams notification...")
-        # Use the simplified Teams notification script (no Skipped/Browser fields)
-        teams_success, _, _ = run_command(
-            f"python3 send-teams-notification.py --xml \"{xml_file_to_use}\" --environment \"{args.environment}\"",
-            "Sending Teams notification"
-        )
+        # Use the correct file for Teams notification (prefer TRX, fallback to XML)
+        notification_file = trx_file_to_use if trx_file_to_use and os.path.exists(trx_file_to_use) else xml_file_to_use
+        if notification_file and os.path.exists(notification_file):
+            # Use the simplified Teams notification script (no Skipped/Browser fields)
+            teams_success, _, _ = run_command(
+                f"python3 send-teams-notification.py --xml \"{notification_file}\" --environment \"{args.environment}\"",
+                "Sending Teams notification"
+            )
+        else:
+            safe_print("⚠️ No test results file found for Teams notification")
+            teams_success = False
         
         if teams_success:
             safe_print("✅ Teams notification sent successfully!")
