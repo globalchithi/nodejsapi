@@ -119,7 +119,7 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
                 "Generating HTML report with Windows-compatible actual results parser"
             )
     
-    # Send Teams notification if requested (before final cleanup)
+    # Send Teams notification if requested
     if args and args.teams:
         safe_print("📤 Sending Teams notification...")
         # Use the correct file for Teams notification (prefer TRX, fallback to XML)
@@ -138,10 +138,6 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
             safe_print("✅ Teams notification sent successfully!")
         else:
             safe_print("⚠️ Teams notification failed, but tests completed")
-    
-    # Final cleanup: Remove all non-HTML files, keeping only HTML reports
-    # This runs regardless of HTML report generation success
-    clean_after_html_generation()
     
     # Open the HTML report automatically if requested
     if args and not args.no_open:
@@ -315,76 +311,6 @@ def clean_test_reports():
     except Exception as e:
         safe_print(f"⚠️  Error cleaning TestReports folder: {e}")
 
-def clean_after_html_generation():
-    """Clean all non-HTML files after HTML report generation, keeping only HTML files"""
-    try:
-        import glob
-        
-        reports_dir = "TestReports"
-        if not os.path.exists(reports_dir):
-            return
-        
-        # Define file patterns to remove (everything except HTML)
-        file_patterns_to_remove = {
-            'TRX Files': '*.trx', 
-            'XML Files': '*.xml',
-            'JSON Files': '*.json',
-            'MD Files': '*.md',
-            'PDF Files': '*.pdf'
-        }
-        
-        total_removed = 0
-        safe_print(f"🧹 Final cleanup: Removing all non-HTML files...")
-        safe_print(f"📁 Keeping only HTML reports...")
-        
-        for file_type, pattern in file_patterns_to_remove.items():
-            # Find all files matching this pattern
-            files = glob.glob(os.path.join(reports_dir, pattern))
-            
-            if len(files) == 0:
-                continue
-            
-            safe_print(f"🗑️  Removing all {file_type}...")
-            
-            for file_to_delete in files:
-                try:
-                    os.remove(file_to_delete)
-                    safe_print(f"🗑️  Removed: {os.path.basename(file_to_delete)}")
-                    total_removed += 1
-                except Exception as e:
-                    safe_print(f"⚠️  Could not remove {os.path.basename(file_to_delete)}: {e}")
-        
-        # Also clean any subdirectories
-        subdirs = [d for d in os.listdir(reports_dir) if os.path.isdir(os.path.join(reports_dir, d))]
-        for subdir in subdirs:
-            subdir_path = os.path.join(reports_dir, subdir)
-            
-            # Remove all non-HTML files in subdirectories
-            for file_type, pattern in file_patterns_to_remove.items():
-                subdir_files = glob.glob(os.path.join(subdir_path, pattern))
-                for file_to_delete in subdir_files:
-                    try:
-                        os.remove(file_to_delete)
-                        safe_print(f"🗑️  Removed from {subdir}: {os.path.basename(file_to_delete)}")
-                        total_removed += 1
-                    except Exception as e:
-                        safe_print(f"⚠️  Could not remove {os.path.basename(file_to_delete)}: {e}")
-            
-            # If the subdirectory is empty after cleaning, remove it
-            try:
-                remaining_files = os.listdir(subdir_path)
-                if not remaining_files:
-                    os.rmdir(subdir_path)
-                    safe_print(f"🗑️  Removed empty subdirectory: {subdir}")
-            except Exception as e:
-                safe_print(f"⚠️  Could not remove subdirectory {subdir}: {e}")
-        
-        safe_print(f"✅ Final cleanup completed!")
-        safe_print(f"📊 Total non-HTML files removed: {total_removed}")
-        safe_print(f"📄 Only HTML reports remain in TestReports folder")
-        
-    except Exception as e:
-        safe_print(f"⚠️  Error in final cleanup: {e}")
 
 def main():
     parser = argparse.ArgumentParser(description='Run all tests with enhanced HTML reporting')
@@ -400,7 +326,6 @@ def main():
     parser.add_argument('--browser', default='N/A', help='Browser information for Teams notification')
     parser.add_argument('--open-report', action='store_true', default=True, help='Open HTML report in browser after completion (default: True)')
     parser.add_argument('--no-open', action='store_true', help='Do not open HTML report automatically')
-    parser.add_argument('--no-clean', action='store_true', help='Do not clean TestReports folder before running tests')
     
     args = parser.parse_args()
     
@@ -416,10 +341,6 @@ def main():
     if not check_dotnet():
         sys.exit(1)
     
-    # Clean TestReports folder before running tests (unless disabled)
-    if not args.no_clean:
-        clean_test_reports()
-        safe_print("")
     
     # Clean and restore if requested
     if args.clean:

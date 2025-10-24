@@ -91,9 +91,26 @@ def parse_xml_with_regex(xml_file):
     # Extract test data using regex
     test_details = []
     
-    # Find all test elements using regex
+    # Try xUnit format first - more flexible pattern that doesn't depend on attribute order
     test_pattern = r'<test[^>]*name="([^"]*)"[^>]*result="([^"]*)"[^>]*time="([^"]*)"[^>]*type="([^"]*)"[^>]*>'
     test_matches = re.findall(test_pattern, content)
+    
+    # If the above pattern doesn't work, try a simpler approach
+    if not test_matches:
+        # Extract name, result, time, and type separately
+        name_pattern = r'<test[^>]*name="([^"]*)"'
+        result_pattern = r'<test[^>]*result="([^"]*)"'
+        time_pattern = r'<test[^>]*time="([^"]*)"'
+        type_pattern = r'<test[^>]*type="([^"]*)"'
+        
+        names = re.findall(name_pattern, content)
+        results = re.findall(result_pattern, content)
+        times = re.findall(time_pattern, content)
+        types = re.findall(type_pattern, content)
+        
+        # Combine them if we have the same number of each
+        if len(names) == len(results) == len(times) == len(types):
+            test_matches = list(zip(names, results, times, types))
     
     for match in test_matches:
         test_name, test_result, test_time, test_type = match
@@ -122,12 +139,57 @@ def parse_xml_with_regex(xml_file):
             'duration_ms': round(duration * 1000, 2)
         })
     
+    # If no xUnit tests found, try TRX format
+    if not test_details:
+        trx_pattern = r'<UnitTestResult[^>]*testName="([^"]*)"[^>]*outcome="([^"]*)"[^>]*duration="([^"]*)"[^>]*>'
+        trx_matches = re.findall(trx_pattern, content)
+        
+        for match in trx_matches:
+            test_name, test_result, test_duration = match
+            
+            # Extract class name from test name
+            if '.' in test_name:
+                parts = test_name.split('.')
+                class_name = parts[-2] if len(parts) > 1 else 'Unknown'
+                display_name = parts[-1].replace('_', ' ')
+            else:
+                class_name = 'Unknown'
+                display_name = test_name.replace('_', ' ')
+            
+            # Map TRX outcome to standard result
+            if test_result == 'Passed':
+                test_result = 'Pass'
+            elif test_result == 'Failed':
+                test_result = 'Fail'
+            elif test_result == 'Skipped':
+                test_result = 'Skip'
+            
+            # Parse duration (TRX format: HH:MM:SS.fffffff)
+            try:
+                duration_parts = test_duration.split(':')
+                if len(duration_parts) >= 3:
+                    duration = float(duration_parts[-1])  # Get seconds part
+                else:
+                    duration = 0.0
+            except ValueError:
+                duration = 0.0
+            
+            test_details.append({
+                'name': display_name,
+                'full_name': test_name,
+                'class': class_name,
+                'result': test_result,
+                'duration': duration,
+                'duration_ms': round(duration * 1000, 2)
+            })
+    
     # Calculate statistics
     total_tests = len(test_details)
     passed_tests = len([t for t in test_details if t['result'] == 'Pass'])
     failed_tests = len([t for t in test_details if t['result'] == 'Fail'])
     skipped_tests = len([t for t in test_details if t['result'] == 'Skip'])
     success_rate = round((passed_tests / total_tests) * 100, 1) if total_tests > 0 else 0
+    
     
     return {
         'total_tests': total_tests,
@@ -142,7 +204,7 @@ def extract_from_xml_tree(tree):
     """Extract test data from XML tree"""
     test_details = []
     
-    # Find all test elements
+    # Try xUnit format first (assemblies > assembly > collection > test)
     for test in tree.findall('.//test'):
         test_name = test.get('name', 'Unknown Test')
         test_result = test.get('result', 'Unknown')
@@ -167,12 +229,46 @@ def extract_from_xml_tree(tree):
             'duration_ms': round(test_time * 1000, 2)
         })
     
+    # If no tests found in xUnit format, try TRX format
+    if not test_details:
+        for test in tree.findall('.//UnitTestResult'):
+            test_name = test.get('testName', 'Unknown Test')
+            test_result = test.get('outcome', 'Unknown')
+            test_time = float(test.get('duration', '00:00:00.0000000').split(':')[-1])
+            
+            # Extract class name from test name
+            if '.' in test_name:
+                parts = test_name.split('.')
+                class_name = parts[-2] if len(parts) > 1 else 'Unknown'
+                display_name = parts[-1].replace('_', ' ')
+            else:
+                class_name = 'Unknown'
+                display_name = test_name.replace('_', ' ')
+            
+            # Map TRX outcome to standard result
+            if test_result == 'Passed':
+                test_result = 'Pass'
+            elif test_result == 'Failed':
+                test_result = 'Fail'
+            elif test_result == 'Skipped':
+                test_result = 'Skip'
+            
+            test_details.append({
+                'name': display_name,
+                'full_name': test_name,
+                'class': class_name,
+                'result': test_result,
+                'duration': test_time,
+                'duration_ms': round(test_time * 1000, 2)
+            })
+    
     # Calculate statistics
     total_tests = len(test_details)
     passed_tests = len([t for t in test_details if t['result'] == 'Pass'])
     failed_tests = len([t for t in test_details if t['result'] == 'Fail'])
     skipped_tests = len([t for t in test_details if t['result'] == 'Skip'])
     success_rate = round((passed_tests / total_tests) * 100, 1) if total_tests > 0 else 0
+    
     
     return {
         'total_tests': total_tests,
@@ -318,6 +414,7 @@ def main():
     parser.add_argument('--test', action='store_true', help='Send test notification')
     
     args = parser.parse_args()
+    
     
     # Default webhook URL (from your curl command)
     default_webhook = "https://default809ba6beb3bb4f08a26065732b2a2b.36.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/0d24a9464a6a49bfb869e82691dcba5e/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=GfEveRKN8pJuVa0-xWnNp5-EHLU0Oygkh53ZhvdENjM"

@@ -187,16 +187,14 @@ namespace VaxCareApiTests.Tests
             }
             catch (HttpRequestException ex) when (ex.Message.Contains("nodename nor servname provided") || ex.Message.Contains("Name or service not known") || ex.Message.Contains("No such host"))
             {
-                // Handle network connectivity issues gracefully
-                Console.WriteLine("⚠️  Network connectivity issue - API endpoint not reachable");
-                Console.WriteLine("This is expected if the API server is not accessible from your network");
-                Console.WriteLine("The test structure and configuration are correct");
+                // PUT operations should FAIL when network is not reachable
+                // This is a critical business operation that must work
+                Console.WriteLine("❌ Network connectivity issue - API endpoint not reachable");
+                Console.WriteLine("PUT operations require network connectivity to function properly");
+                Console.WriteLine("This test FAILS because checkout cannot work without network access");
                 
-                // Display test completion with network issue
-                DisplayTestCompletion("CheckoutAppointment_Success_SingleVaccine", true, "Network connectivity issue - test structure validated");
-                
-                // Skip the test if network is not available
-                return;
+                // FAIL the test - PUT operations must have network connectivity
+                throw new InvalidOperationException($"Network connectivity required for PUT operations. Original error: {ex.Message}", ex);
             }
             catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
             {
@@ -242,19 +240,25 @@ namespace VaxCareApiTests.Tests
             }
             catch (HttpRequestException ex) when (ex.Message.Contains("nodename nor servname provided") || ex.Message.Contains("Name or service not known") || ex.Message.Contains("No such host"))
             {
-                // Handle network connectivity issues gracefully
-                Console.WriteLine("⚠️  Network connectivity issue - API endpoint not reachable");
-                Console.WriteLine("This is expected if the API server is not accessible from your network");
-                Console.WriteLine("The test structure and configuration are correct");
+                // PUT operations should FAIL when network is not reachable
+                // This is a critical business operation that must work
+                Console.WriteLine("❌ Network connectivity issue - API endpoint not reachable");
+                Console.WriteLine("PUT operations require network connectivity to function properly");
+                Console.WriteLine("This test FAILS because checkout cannot work without network access");
                 
-                // Skip the test if network is not available
-                return;
+                // FAIL the test - PUT operations must have network connectivity
+                throw new InvalidOperationException($"Network connectivity required for PUT operations. Original error: {ex.Message}", ex);
             }
             catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
             {
-                Console.WriteLine("⚠️  Request timeout - API endpoint may be slow or unreachable");
-                Console.WriteLine("This is expected if the API server is not accessible from your network");
-                return;
+                // PUT operations should FAIL when timeout occurs
+                // This is a critical business operation that must work
+                Console.WriteLine("❌ Request timeout - API endpoint may be slow or unreachable");
+                Console.WriteLine("PUT operations require reliable network connectivity");
+                Console.WriteLine("This test FAILS because checkout cannot work with timeouts");
+                
+                // FAIL the test - PUT operations must have reliable connectivity
+                throw new InvalidOperationException($"Network timeout for PUT operations. Original error: {ex.Message}", ex);
             }
         }
 
@@ -287,19 +291,25 @@ namespace VaxCareApiTests.Tests
             }
             catch (HttpRequestException ex) when (ex.Message.Contains("nodename nor servname provided") || ex.Message.Contains("Name or service not known") || ex.Message.Contains("No such host"))
             {
-                // Handle network connectivity issues gracefully
-                Console.WriteLine("⚠️  Network connectivity issue - API endpoint not reachable");
-                Console.WriteLine("This is expected if the API server is not accessible from your network");
-                Console.WriteLine("The test structure and configuration are correct");
+                // PUT operations should FAIL when network is not reachable
+                // This is a critical business operation that must work
+                Console.WriteLine("❌ Network connectivity issue - API endpoint not reachable");
+                Console.WriteLine("PUT operations require network connectivity to function properly");
+                Console.WriteLine("This test FAILS because checkout cannot work without network access");
                 
-                // Skip the test if network is not available
-                return;
+                // FAIL the test - PUT operations must have network connectivity
+                throw new InvalidOperationException($"Network connectivity required for PUT operations. Original error: {ex.Message}", ex);
             }
             catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
             {
-                Console.WriteLine("⚠️  Request timeout - API endpoint may be slow or unreachable");
-                Console.WriteLine("This is expected if the API server is not accessible from your network");
-                return;
+                // PUT operations should FAIL when timeout occurs
+                // This is a critical business operation that must work
+                Console.WriteLine("❌ Request timeout - API endpoint may be slow or unreachable");
+                Console.WriteLine("PUT operations require reliable network connectivity");
+                Console.WriteLine("This test FAILS because checkout cannot work with timeouts");
+                
+                // FAIL the test - PUT operations must have reliable connectivity
+                throw new InvalidOperationException($"Network timeout for PUT operations. Original error: {ex.Message}", ex);
             }
         }
 
@@ -610,9 +620,14 @@ namespace VaxCareApiTests.Tests
             }
             catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
             {
-                Console.WriteLine("⚠️  Request timeout - API endpoint may be slow or unreachable");
-                Console.WriteLine("This is expected if the API server is not accessible from your network");
-                return;
+                // PUT operations should FAIL when timeout occurs
+                // This is a critical business operation that must work
+                Console.WriteLine("❌ Request timeout - API endpoint may be slow or unreachable");
+                Console.WriteLine("PUT operations require reliable network connectivity");
+                Console.WriteLine("This test FAILS because checkout cannot work with timeouts");
+                
+                // FAIL the test - PUT operations must have reliable connectivity
+                throw new InvalidOperationException($"Network timeout for PUT operations. Original error: {ex.Message}", ex);
             }
         }
 
@@ -707,9 +722,14 @@ namespace VaxCareApiTests.Tests
             }
             catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
             {
-                Console.WriteLine("⚠️  Request timeout - API endpoint may be slow or unreachable");
-                Console.WriteLine("This is expected if the API server is not accessible from your network");
-                return;
+                // PUT operations should FAIL when timeout occurs
+                // This is a critical business operation that must work
+                Console.WriteLine("❌ Request timeout - API endpoint may be slow or unreachable");
+                Console.WriteLine("PUT operations require reliable network connectivity");
+                Console.WriteLine("This test FAILS because checkout cannot work with timeouts");
+                
+                // FAIL the test - PUT operations must have reliable connectivity
+                throw new InvalidOperationException($"Network timeout for PUT operations. Original error: {ex.Message}", ex);
             }
         }
 
@@ -786,9 +806,14 @@ namespace VaxCareApiTests.Tests
             }
             catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
             {
-                Console.WriteLine("⚠️  Request timeout - API endpoint may be slow or unreachable");
-                Console.WriteLine("This is expected if the API server is not accessible from your network");
-                return;
+                // PUT operations should FAIL when timeout occurs
+                // This is a critical business operation that must work
+                Console.WriteLine("❌ Request timeout - API endpoint may be slow or unreachable");
+                Console.WriteLine("PUT operations require reliable network connectivity");
+                Console.WriteLine("This test FAILS because checkout cannot work with timeouts");
+                
+                // FAIL the test - PUT operations must have reliable connectivity
+                throw new InvalidOperationException($"Network timeout for PUT operations. Original error: {ex.Message}", ex);
             }
         }
 
@@ -876,9 +901,14 @@ namespace VaxCareApiTests.Tests
             }
             catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
             {
-                Console.WriteLine("⚠️  Request timeout - API endpoint may be slow or unreachable");
-                Console.WriteLine("This is expected if the API server is not accessible from your network");
-                return;
+                // PUT operations should FAIL when timeout occurs
+                // This is a critical business operation that must work
+                Console.WriteLine("❌ Request timeout - API endpoint may be slow or unreachable");
+                Console.WriteLine("PUT operations require reliable network connectivity");
+                Console.WriteLine("This test FAILS because checkout cannot work with timeouts");
+                
+                // FAIL the test - PUT operations must have reliable connectivity
+                throw new InvalidOperationException($"Network timeout for PUT operations. Original error: {ex.Message}", ex);
             }
         }
 
@@ -936,9 +966,14 @@ namespace VaxCareApiTests.Tests
             }
             catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
             {
-                Console.WriteLine("⚠️  Request timeout - API endpoint may be slow or unreachable");
-                Console.WriteLine("This is expected if the API server is not accessible from your network");
-                return;
+                // PUT operations should FAIL when timeout occurs
+                // This is a critical business operation that must work
+                Console.WriteLine("❌ Request timeout - API endpoint may be slow or unreachable");
+                Console.WriteLine("PUT operations require reliable network connectivity");
+                Console.WriteLine("This test FAILS because checkout cannot work with timeouts");
+                
+                // FAIL the test - PUT operations must have reliable connectivity
+                throw new InvalidOperationException($"Network timeout for PUT operations. Original error: {ex.Message}", ex);
             }
         }
 
