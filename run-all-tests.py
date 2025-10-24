@@ -79,86 +79,68 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
     # Run tests
     success, stdout, stderr = run_command(test_cmd, "Running tests")
     
-    if success:
-        safe_print("📊 Test execution completed!")
-        safe_print(stdout)
-        
-        # Generate enhanced HTML report
-        xml_file_to_use = xml_file
-        if not os.path.exists(xml_file):
-            # Try to find any XML file in the output directory or subdirectories
-            import glob
-            xml_files = glob.glob(os.path.join(output_dir, "**", "TestResults_*.xml"), recursive=True)
-            if xml_files:
-                # Get the most recent XML file
-                xml_file_to_use = max(xml_files, key=os.path.getmtime)
-                safe_print(f"📄 Using latest XML file: {xml_file_to_use}")
+    # Always try to generate reports and send notifications, even if some tests failed
+    safe_print("📊 Test execution completed!")
+    safe_print(stdout)
+    if stderr:
+        safe_print("STDERR:")
+        safe_print(stderr)
+    
+    # Generate enhanced HTML report
+    xml_file_to_use = xml_file
+    if not os.path.exists(xml_file):
+        # Try to find any XML file in the output directory or subdirectories
+        import glob
+        xml_files = glob.glob(os.path.join(output_dir, "**", "TestResults_*.xml"), recursive=True)
+        if xml_files:
+            # Get the most recent XML file
+            xml_file_to_use = max(xml_files, key=os.path.getmtime)
+            safe_print(f"📄 Using latest XML file: {xml_file_to_use}")
+        else:
+            fallback_xml = os.path.join(output_dir, "TestResults.xml")
+            if os.path.exists(fallback_xml):
+                safe_print(f"📄 Using existing XML file: {fallback_xml}")
+                xml_file_to_use = fallback_xml
             else:
-                fallback_xml = os.path.join(output_dir, "TestResults.xml")
-                if os.path.exists(fallback_xml):
-                    safe_print(f"📄 Using existing XML file: {fallback_xml}")
-                    xml_file_to_use = fallback_xml
-                else:
-                    safe_print("⚠️ No XML test results file found")
-                    return True  # Tests completed but no XML file
+                safe_print("⚠️ No XML test results file found")
+                return success  # Return the test success status
+    
+    if os.path.exists(xml_file_to_use):
+        safe_print("📄 Generating enhanced HTML report...")
+        # Try robust parser first, then fallback to Windows-compatible version
+        report_success, _, _ = run_command(
+            f"python3 generate-enhanced-html-report-robust.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
+            "Generating HTML report with robust parser"
+        )
         
-        if os.path.exists(xml_file_to_use):
-            safe_print("📄 Generating enhanced HTML report...")
-            # Try robust parser first, then fallback to Windows-compatible version
+        # If robust parser fails, try Windows-compatible version
+        if not report_success:
+            safe_print("⚠️ Robust parser failed, trying Windows-compatible version...")
             report_success, _, _ = run_command(
-                f"python3 generate-enhanced-html-report-robust.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
-                "Generating HTML report with robust parser"
+                f"python3 generate-enhanced-html-report-windows.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
+                "Generating HTML report with Windows-compatible parser"
             )
-            
-            # If robust parser fails, try Windows-compatible version
-            if not report_success:
-                safe_print("⚠️ Robust parser failed, trying Windows-compatible version...")
-                report_success, _, _ = run_command(
-                    f"python3 generate-enhanced-html-report-windows.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\"",
-                    "Generating HTML report with Windows-compatible parser"
-                )
-            
-            if report_success:
-                safe_print("✅ Enhanced HTML report generated successfully!")
-            else:
-                safe_print("⚠️ HTML report generation failed, but tests completed")
         
-        # Send Teams notification if requested
-        if args and args.teams:
-            safe_print("📤 Sending Teams notification with HTML attachment...")
-            # Try HTML attachment version first, then SSL certificate fix, then regular version
-            teams_success, _, _ = run_command(
-                f"python3 send-teams-notification-with-attachment.py --xml \"{xml_file_to_use}\" --output \"{output_dir}\" --environment \"{args.environment}\"",
-                "Sending Teams notification with HTML attachment"
-            )
-            
-            # If HTML attachment version fails, try SSL certificate fix version
-            if not teams_success:
-                safe_print("⚠️ HTML attachment version failed, trying SSL certificate fix...")
-                teams_success, _, _ = run_command(
-                    f"python3 send-teams-notification-ssl-fix.py --xml \"{xml_file_to_use}\" --environment \"{args.environment}\"",
-                    "Sending Teams notification with SSL certificate fix"
-                )
-            
-            # If SSL fix version fails, try regular version
-            if not teams_success:
-                safe_print("⚠️ SSL fix version failed, trying regular version...")
-                teams_success, _, _ = run_command(
-                    f"python3 send-teams-notification.py --xml \"{xml_file_to_use}\" --environment \"{args.environment}\"",
-                    "Sending Teams notification with regular version"
-                )
-            
-            if teams_success:
-                safe_print("✅ Teams notification sent successfully!")
-            else:
-                safe_print("⚠️ Teams notification failed, but tests completed")
+        if report_success:
+            safe_print("✅ Enhanced HTML report generated successfully!")
+        else:
+            safe_print("⚠️ HTML report generation failed, but tests completed")
+    
+    # Send Teams notification if requested
+    if args and args.teams:
+        safe_print("📤 Sending Teams notification...")
+        # Use the simplified Teams notification script (no Skipped/Browser fields)
+        teams_success, _, _ = run_command(
+            f"python3 send-teams-notification.py --xml \"{xml_file_to_use}\" --environment \"{args.environment}\"",
+            "Sending Teams notification"
+        )
         
-        return True
-    else:
-        safe_print("❌ Test execution failed")
-        safe_print(f"STDOUT: {stdout}")
-        safe_print(f"STDERR: {stderr}")
-        return False
+        if teams_success:
+            safe_print("✅ Teams notification sent successfully!")
+        else:
+            safe_print("⚠️ Teams notification failed, but tests completed")
+    
+    return success
 
 def run_specific_test_categories():
     """Run tests by category"""
