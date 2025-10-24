@@ -122,8 +122,9 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
     # Send Teams notification if requested
     if args and args.teams:
         safe_print("📤 Sending Teams notification...")
-        # Use the correct file for Teams notification (prefer TRX, fallback to XML)
-        notification_file = trx_file_to_use if trx_file_to_use and os.path.exists(trx_file_to_use) else xml_file_to_use
+        # Teams notification script only works with XML files, not TRX files
+        # Use XML file for Teams notification
+        notification_file = xml_file_to_use
         if notification_file and os.path.exists(notification_file):
             # Use the simplified Teams notification script (no Skipped/Browser fields)
             teams_success, _, _ = run_command(
