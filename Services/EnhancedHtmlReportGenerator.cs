@@ -4,6 +4,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace VaxCareApiTests.Services
 {
@@ -21,7 +22,8 @@ namespace VaxCareApiTests.Services
             try
             {
                 var testResults = ParseXmlResults(xmlFilePath);
-                var htmlContent = GenerateHtmlContent(testResults);
+                var testInfo = LoadTestInfo();
+                var htmlContent = GenerateHtmlContent(testResults, testInfo);
                 await File.WriteAllTextAsync(outputPath, htmlContent);
                 _logger.LogInformation($"Enhanced HTML report generated: {outputPath}");
                 return outputPath;
@@ -99,7 +101,26 @@ namespace VaxCareApiTests.Services
             };
         }
 
-        private string GenerateHtmlContent(TestResultsData testResults)
+        private Dictionary<string, TestInfo> LoadTestInfo()
+        {
+            try
+            {
+                var testInfoPath = Path.Combine(Directory.GetCurrentDirectory(), "TestInfo.json");
+                if (File.Exists(testInfoPath))
+                {
+                    var json = File.ReadAllText(testInfoPath);
+                    var testInfoData = JsonSerializer.Deserialize<TestInfoData>(json);
+                    return testInfoData?.TestInfo ?? new Dictionary<string, TestInfo>();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not load test info from TestInfo.json");
+            }
+            return new Dictionary<string, TestInfo>();
+        }
+
+        private string GenerateHtmlContent(TestResultsData testResults, Dictionary<string, TestInfo> testInfo)
         {
             var passedTests = testResults.PassedTests;
             var failedTests = testResults.FailedTests;
@@ -182,11 +203,25 @@ namespace VaxCareApiTests.Services
                 var statusIcon = test.Status == TestStatus.Passed ? "✅" : 
                                 test.Status == TestStatus.Failed ? "❌" : "⏭️";
                 
+                // Get test info if available
+                var currentTestInfo = testInfo.ContainsKey(test.TestName) ? testInfo[test.TestName] : null;
+                
                 html += $@"
             <div class='test-result {statusClass}'>
                 <div class='test-name'>{statusIcon} {test.TestName}</div>
                 <div class='test-class'>{test.ClassName}</div>
                 <div class='test-duration'>Duration: {test.Duration.TotalMilliseconds:F0}ms</div>";
+                
+                if (currentTestInfo != null)
+                {
+                    html += $@"
+                <div class='test-info' style='margin-top: 10px; padding: 10px; background: #e9ecef; border-radius: 4px;'>
+                    <div><strong>📋 Description:</strong> {currentTestInfo.Description}</div>
+                    <div><strong>🎯 Test Type:</strong> {currentTestInfo.TestType}</div>
+                    <div><strong>🔗 Endpoint:</strong> {currentTestInfo.Endpoint}</div>
+                    <div><strong>📊 Expected Result:</strong> {currentTestInfo.ExpectedResult}</div>
+                </div>";
+                }
 
                 if (test.Status == TestStatus.Failed && !string.IsNullOrEmpty(test.ErrorMessage))
                 {
@@ -221,7 +256,20 @@ namespace VaxCareApiTests.Services
         public int PassedTests { get; set; }
         public int FailedTests { get; set; }
         public int SkippedTests { get; set; }
-        public double SuccessRate { get; set; }
+        public double SuccessRate { get; set;         }
+    }
+
+    public class TestInfo
+    {
+        public string Description { get; set; } = "";
+        public string TestType { get; set; } = "";
+        public string Endpoint { get; set; } = "";
+        public string ExpectedResult { get; set; } = "";
+    }
+
+    public class TestInfoData
+    {
+        public Dictionary<string, TestInfo> TestInfo { get; set; } = new();
     }
 }
 

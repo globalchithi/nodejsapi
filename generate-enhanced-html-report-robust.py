@@ -7,8 +7,21 @@ This script handles malformed XML files and generates comprehensive HTML reports
 import os
 import sys
 import re
+import json
 from datetime import datetime
 import argparse
+
+def load_test_info():
+    """Load test information from TestInfo.json"""
+    try:
+        test_info_path = os.path.join(os.getcwd(), "TestInfo.json")
+        if os.path.exists(test_info_path):
+            with open(test_info_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return data.get('testInfo', {})
+    except Exception as e:
+        print(f"Warning: Could not load test info: {e}")
+    return {}
 
 def clean_xml_content(xml_content):
     """Clean and fix malformed XML content"""
@@ -31,7 +44,7 @@ def clean_xml_content(xml_content):
     
     return '\n'.join(cleaned_lines)
 
-def parse_xml_with_regex(xml_file):
+def parse_xml_with_regex(xml_file, test_info):
     """Parse XML using regex as fallback when XML parsing fails"""
     print("Using regex parsing as fallback...")
     
@@ -74,6 +87,33 @@ def parse_xml_with_regex(xml_file):
         except ValueError:
             duration = 0.0
         
+        # Get test info if available
+        test_info_for_test = test_info.get(test_name, {})
+        
+        # Extract failure information for failed tests
+        actual_result = ""
+        failure_reason = ""
+        if test_result == 'Fail':
+            # Look for failure message in the test element
+            failure_element = test.find('.//failure')
+            if failure_element is not None:
+                # Check for message element within failure
+                message_element = failure_element.find('.//message')
+                if message_element is not None:
+                    failure_reason = message_element.text or "Test failed"
+                else:
+                    failure_reason = failure_element.text or "Test failed"
+                actual_result = "Test execution failed"
+            else:
+                # Look for error message
+                error_element = test.find('.//error')
+                if error_element is not None:
+                    failure_reason = error_element.text or "Test error"
+                    actual_result = "Test execution error"
+                else:
+                    failure_reason = "Test failed without specific error message"
+                    actual_result = "Test execution failed"
+        
         test_details.append({
             'name': display_name,
             'full_name': test_name,
@@ -81,7 +121,13 @@ def parse_xml_with_regex(xml_file):
             'result': test_result,
             'duration': duration,
             'duration_ms': round(duration * 1000, 2),
-            'status_icon': '&#10004;' if test_result == 'Pass' else '&#10008;' if test_result == 'Fail' else '&#9193;'
+            'status_icon': '&#10004;' if test_result == 'Pass' else '&#10008;' if test_result == 'Fail' else '&#9193;',
+            'description': test_info_for_test.get('description', ''),
+            'test_type': test_info_for_test.get('testType', ''),
+            'endpoint': test_info_for_test.get('endpoint', ''),
+            'expected_result': test_info_for_test.get('expectedResult', ''),
+            'actual_result': actual_result,
+            'failure_reason': failure_reason
         })
     
     # Calculate statistics
@@ -104,6 +150,10 @@ def parse_xml_file(xml_file):
     """Parse XML file with multiple fallback methods"""
     print("Parsing XML file with robust methods...")
     
+    # Load test information
+    test_info = load_test_info()
+    print(f"Loaded test info for {len(test_info)} tests")
+    
     # Try different encodings and methods
     encodings = ['utf-8', 'utf-8-sig', 'ascii', 'latin-1']
     
@@ -123,11 +173,11 @@ def parse_xml_file(xml_file):
                 print(f"Successfully parsed XML with {encoding} encoding")
                 
                 # Extract data from XML tree
-                return extract_from_xml_tree(tree)
+                return extract_from_xml_tree(tree, test_info)
             except Exception as xml_error:
                 print(f"XML parsing failed with {encoding}: {xml_error}")
                 # Fall back to regex parsing
-                return parse_xml_with_regex(xml_file)
+                return parse_xml_with_regex(xml_file, test_info)
                 
         except Exception as e:
             print(f"{encoding} encoding failed: {e}")
@@ -135,9 +185,9 @@ def parse_xml_file(xml_file):
     
     # If all encodings fail, try regex parsing
     print("All XML parsing methods failed, using regex fallback...")
-    return parse_xml_with_regex(xml_file)
+    return parse_xml_with_regex(xml_file, test_info)
 
-def extract_from_xml_tree(tree):
+def extract_from_xml_tree(tree, test_info):
     """Extract test data from XML tree"""
     test_details = []
     
@@ -157,6 +207,9 @@ def extract_from_xml_tree(tree):
         # Format display name
         display_name = test_name.split('.')[-1].replace('_', ' ')
         
+        # Get test info if available
+        test_info_for_test = test_info.get(test_name, {})
+        
         test_details.append({
             'name': display_name,
             'full_name': test_name,
@@ -164,7 +217,11 @@ def extract_from_xml_tree(tree):
             'result': test_result,
             'duration': test_time,
             'duration_ms': round(test_time * 1000, 2),
-            'status_icon': '&#10004;' if test_result == 'Pass' else '&#10008;' if test_result == 'Fail' else '&#9193;'
+            'status_icon': '&#10004;' if test_result == 'Pass' else '&#10008;' if test_result == 'Fail' else '&#9193;',
+            'description': test_info_for_test.get('description', ''),
+            'test_type': test_info_for_test.get('testType', ''),
+            'endpoint': test_info_for_test.get('endpoint', ''),
+            'expected_result': test_info_for_test.get('expectedResult', '')
         })
     
     # Calculate statistics
@@ -212,8 +269,11 @@ def generate_html_report(data, output_path):
         .test-table th {{ background: #007bff; color: white; font-weight: bold; }}
         .test-table tbody tr:hover {{ background-color: #f5f5f5; }}
         .status-passed {{ color: #28a745; font-weight: bold; }}
-        .status-failed {{ color: #dc3545; font-weight: bold; }}
+        .status-failed {{ color: #dc3545; font-weight: bold; background-color: #f8d7da; padding: 5px; border-radius: 3px; }}
         .status-skipped {{ color: #ffc107; font-weight: bold; }}
+        .failed-test-row {{ background-color: #f8d7da; }}
+        .actual-result {{ color: #dc3545; font-weight: bold; margin-top: 5px; }}
+        .failure-reason {{ color: #dc3545; font-style: italic; margin-top: 3px; font-size: 0.9em; }}
         .duration {{ font-family: monospace; background: #f8f9fa; padding: 2px 6px; border-radius: 3px; }}
         .footer {{ text-align: center; margin-top: 30px; color: #666; }}
         .warning {{ background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0; }}
@@ -264,11 +324,36 @@ def generate_html_report(data, output_path):
     # Add test details to table
     for test in data['test_details']:
         status_class = f"status-{test['result'].lower()}" if test['result'] in ['Pass', 'Fail', 'Skip'] else 'status-unknown'
+        row_class = "failed-test-row" if test['result'] == 'Fail' else ""
+        
+        # Add test information if available
+        test_info_html = ""
+        if test.get('description') or test.get('endpoint') or test.get('test_type') or test.get('expected_result'):
+            test_info_html = f"""
+                <div style="margin-top: 10px; padding: 10px; background: #e9ecef; border-radius: 4px; font-size: 0.9em;">
+                    {f"<div><strong>📋 Description:</strong> {test['description']}</div>" if test.get('description') else ""}
+                    {f"<div><strong>🎯 Test Type:</strong> {test['test_type']}</div>" if test.get('test_type') else ""}
+                    {f"<div><strong>🔗 Endpoint:</strong> {test['endpoint']}</div>" if test.get('endpoint') else ""}
+                    {f"<div><strong>📊 Expected Result:</strong> {test['expected_result']}</div>" if test.get('expected_result') else ""}
+                </div>"""
+        
+        # Add failure information for failed tests
+        failure_info_html = ""
+        if test['result'] == 'Fail' and (test.get('actual_result') or test.get('failure_reason')):
+            failure_info_html = f"""
+                <div style="margin-top: 10px; padding: 10px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 4px; font-size: 0.9em;">
+                    {f"<div class='actual-result'><strong>❌ Actual Result:</strong> {test['actual_result']}</div>" if test.get('actual_result') else ""}
+                    {f"<div class='failure-reason'><strong>🔍 Failure Reason:</strong> {test['failure_reason']}</div>" if test.get('failure_reason') else ""}
+                </div>"""
         
         html_content += f"""
-                <tr>
+                <tr class="{row_class}">
                     <td class="{status_class}">{test['status_icon']} {test['result']}</td>
-                    <td>{test['name']}</td>
+                    <td>
+                        <div>{test['name']}</div>
+                        {test_info_html}
+                        {failure_info_html}
+                    </td>
                     <td>{test['class']}</td>
                     <td><span class="duration">{test['duration_ms']}ms</span></td>
                 </tr>"""
