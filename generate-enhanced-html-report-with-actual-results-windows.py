@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Enhanced HTML Report Generator with Actual Results
+Enhanced HTML Report Generator with Actual Results - Windows Compatible
 This script parses TRX files and generates comprehensive HTML reports with actual results and concise failure reasons
+Windows-compatible version with proper encoding handling
 """
 
 import os
@@ -10,6 +11,14 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 import argparse
 import re
+
+def safe_print(text):
+    """Safely print text that may contain Unicode characters"""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        # Fallback for Windows Command Prompt
+        print(text.encode('ascii', 'replace').decode('ascii'))
 
 def parse_trx_file(trx_file):
     """Parse TRX file and extract test results with actual results and failure reasons"""
@@ -180,7 +189,7 @@ def parse_trx_file(trx_file):
         }
         
     except Exception as e:
-        print(f"Error parsing TRX file: {e}")
+        safe_print(f"ERROR: Error parsing TRX file: {e}")
         sys.exit(1)
 
 def generate_html_report(data, output_path):
@@ -230,34 +239,34 @@ def generate_html_report(data, output_path):
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔬 VaxCare API Test Report</h1>
+            <h1>VaxCare API Test Report</h1>
             <p>Generated: {timestamp}</p>
         </div>
         
         <div class="stats">
             <div class="stat-card passed">
                 <div class="stat-number">{data['passed_tests']}</div>
-                <div class="stat-label">✅ Passed</div>
+                <div class="stat-label">Passed</div>
             </div>
             <div class="stat-card failed">
                 <div class="stat-number">{data['failed_tests']}</div>
-                <div class="stat-label">❌ Failed</div>
+                <div class="stat-label">Failed</div>
             </div>
             <div class="stat-card skipped">
                 <div class="stat-number">{data['skipped_tests']}</div>
-                <div class="stat-label">⏭️ Skipped</div>
+                <div class="stat-label">Skipped</div>
             </div>
             <div class="stat-card total">
                 <div class="stat-number">{data['total_tests']}</div>
-                <div class="stat-label">📊 Total</div>
+                <div class="stat-label">Total</div>
             </div>
             <div class="stat-card success-rate">
                 <div class="stat-number">{data['success_rate']}%</div>
-                <div class="stat-label">🎯 Success Rate</div>
+                <div class="stat-label">Success Rate</div>
             </div>
         </div>
         
-        <h2>📋 Test Results</h2>
+        <h2>Test Results</h2>
         <table class="test-table">
             <thead>
                 <tr>
@@ -279,10 +288,10 @@ def generate_html_report(data, output_path):
         if test.get('description') or test.get('endpoint') or test.get('test_type') or test.get('expected_result'):
             test_info_html = f"""
                 <div class="test-info">
-                    {f"<div><strong>📋 Description:</strong> {test['description']}</div>" if test.get('description') else ""}
-                    {f"<div><strong>🎯 Test Type:</strong> {test['test_type']}</div>" if test.get('test_type') else ""}
-                    {f"<div><strong>🔗 Endpoint:</strong> {test['endpoint']}</div>" if test.get('endpoint') else ""}
-                    {f"<div><strong>📊 Expected Result:</strong> {test['expected_result']}</div>" if test.get('expected_result') else ""}
+                    {f"<div><strong>Description:</strong> {test['description']}</div>" if test.get('description') else ""}
+                    {f"<div><strong>Test Type:</strong> {test['test_type']}</div>" if test.get('test_type') else ""}
+                    {f"<div><strong>Endpoint:</strong> {test['endpoint']}</div>" if test.get('endpoint') else ""}
+                    {f"<div><strong>Expected Result:</strong> {test['expected_result']}</div>" if test.get('expected_result') else ""}
                 </div>"""
         
         # Add failure information for failed tests
@@ -290,8 +299,8 @@ def generate_html_report(data, output_path):
         if test['result'] == 'Failed' and (test.get('actual_result') or test.get('failure_reason')):
             failure_info_html = f"""
                 <div class="failure-info">
-                    {f"<div class='actual-result'><strong>❌ Actual Result:</strong> {test['actual_result']}</div>" if test.get('actual_result') else ""}
-                    {f"<div class='failure-reason'><strong>🔍 Failure Reason:</strong> {test['failure_reason']}</div>" if test.get('failure_reason') else ""}
+                    {f"<div class='actual-result'><strong>Actual Result:</strong> {test['actual_result']}</div>" if test.get('actual_result') else ""}
+                    {f"<div class='failure-reason'><strong>Failure Reason:</strong> {test['failure_reason']}</div>" if test.get('failure_reason') else ""}
                 </div>"""
         
         html_content += f"""
@@ -327,16 +336,8 @@ def generate_html_report(data, output_path):
         safe_print(f"ERROR: Error writing HTML file: {e}")
         return False
 
-def safe_print(text):
-    """Safely print text that may contain Unicode characters"""
-    try:
-        print(text)
-    except UnicodeEncodeError:
-        # Fallback for Windows Command Prompt
-        print(text.encode('ascii', 'replace').decode('ascii'))
-
 def main():
-    parser = argparse.ArgumentParser(description='Generate enhanced HTML test report with actual results')
+    parser = argparse.ArgumentParser(description='Generate enhanced HTML test report with actual results - Windows Compatible')
     parser.add_argument('--trx', default='TestResults/TestResults_2025-10-24_09-56-03.trx', help='TRX file path')
     parser.add_argument('--output', default='TestReports', help='Output directory')
     

@@ -110,6 +110,14 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
             f"python3 generate-enhanced-html-report-with-actual-results.py --trx \"{trx_file_to_use}\" --output \"{output_dir}\"",
             "Generating HTML report with actual results"
         )
+        
+        # If actual results parser fails, try Windows-compatible actual results parser
+        if not report_success:
+            safe_print("⚠️ Actual results parser failed, trying Windows-compatible actual results parser...")
+            report_success, _, _ = run_command(
+                f"python3 generate-enhanced-html-report-with-actual-results-windows.py --trx \"{trx_file_to_use}\" --output \"{output_dir}\"",
+                "Generating HTML report with Windows-compatible actual results parser"
+            )
     else:
         # Fall back to XML file
         if not os.path.exists(xml_file):
