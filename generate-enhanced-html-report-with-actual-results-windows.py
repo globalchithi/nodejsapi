@@ -80,43 +80,85 @@ def parse_trx_file(trx_file):
             failure_reason = ""
             
             if outcome == 'Failed':
-                # Look for Output/StdOut or Output/ErrorInfo
+                # Look for Output/ErrorInfo first (most reliable for error details)
                 output_elem = result.find('.//{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}Output')
                 if output_elem is not None:
-                    stdout_elem = output_elem.find('.//{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}StdOut')
-                    if stdout_elem is not None and stdout_elem.text:
-                        # Extract concise failure reason from output
-                        output_text = stdout_elem.text
-                        
-                        # Look for common failure patterns
-                        if 'HttpRequestException' in output_text:
-                            if 'nodename nor servname provided' in output_text:
+                    # Try ErrorInfo first (contains the actual exception message)
+                    error_info_elem = output_elem.find('.//{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}ErrorInfo')
+                    if error_info_elem is not None:
+                        message_elem = error_info_elem.find('.//{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}Message')
+                        if message_elem is not None and message_elem.text:
+                            error_text = message_elem.text
+                            
+                            # Look for common failure patterns in error message
+                            if 'InvalidOperationException' in error_text and 'Network connectivity required' in error_text:
                                 actual_result = "Network connectivity issue"
-                                failure_reason = "API endpoint not reachable - DNS resolution failed"
-                            elif 'Name or service not known' in output_text:
-                                actual_result = "Network connectivity issue"
-                                failure_reason = "API endpoint not reachable - hostname not found"
+                                failure_reason = "POST operations require network connectivity - API endpoint not reachable"
+                            elif 'HttpRequestException' in error_text:
+                                if 'nodename nor servname provided' in error_text:
+                                    actual_result = "Network connectivity issue"
+                                    failure_reason = "API endpoint not reachable - DNS resolution failed"
+                                elif 'Name or service not known' in error_text:
+                                    actual_result = "Network connectivity issue"
+                                    failure_reason = "API endpoint not reachable - hostname not found"
+                                else:
+                                    actual_result = "HTTP request failed"
+                                    failure_reason = "Network connectivity issue"
+                            elif 'TaskCanceledException' in error_text:
+                                actual_result = "Request timeout"
+                                failure_reason = "API endpoint timeout - server not responding"
+                            elif 'TimeoutException' in error_text:
+                                actual_result = "Request timeout"
+                                failure_reason = "Request timed out"
+                            elif 'Assertion' in error_text:
+                                actual_result = "Assertion failed"
+                                failure_reason = "Test assertion did not pass"
                             else:
-                                actual_result = "HTTP request failed"
-                                failure_reason = "Network connectivity issue"
-                        elif 'TaskCanceledException' in output_text:
-                            actual_result = "Request timeout"
-                            failure_reason = "API endpoint timeout - server not responding"
-                        elif 'TimeoutException' in output_text:
-                            actual_result = "Request timeout"
-                            failure_reason = "Request timed out"
-                        elif 'Assertion' in output_text:
-                            actual_result = "Assertion failed"
-                            failure_reason = "Test assertion did not pass"
-                        else:
-                            # Extract first line of meaningful error
-                            lines = output_text.split('\n')
-                            for line in lines:
-                                line = line.strip()
-                                if line and not line.startswith('Test:') and not line.startswith('Description:'):
-                                    actual_result = "Test execution failed"
-                                    failure_reason = line[:100] + "..." if len(line) > 100 else line
-                                    break
+                                # Extract first line of meaningful error
+                                lines = error_text.split('\n')
+                                for line in lines:
+                                    line = line.strip()
+                                    if line and not line.startswith('Test:') and not line.startswith('Description:'):
+                                        actual_result = "Test execution failed"
+                                        failure_reason = line[:100] + "..." if len(line) > 100 else line
+                                        break
+                    
+                    # Fallback to StdOut if ErrorInfo not found
+                    if not actual_result:
+                        stdout_elem = output_elem.find('.//{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}StdOut')
+                        if stdout_elem is not None and stdout_elem.text:
+                            # Extract concise failure reason from output
+                            output_text = stdout_elem.text
+                            
+                            # Look for common failure patterns
+                            if 'HttpRequestException' in output_text:
+                                if 'nodename nor servname provided' in output_text:
+                                    actual_result = "Network connectivity issue"
+                                    failure_reason = "API endpoint not reachable - DNS resolution failed"
+                                elif 'Name or service not known' in output_text:
+                                    actual_result = "Network connectivity issue"
+                                    failure_reason = "API endpoint not reachable - hostname not found"
+                                else:
+                                    actual_result = "HTTP request failed"
+                                    failure_reason = "Network connectivity issue"
+                            elif 'TaskCanceledException' in output_text:
+                                actual_result = "Request timeout"
+                                failure_reason = "API endpoint timeout - server not responding"
+                            elif 'TimeoutException' in output_text:
+                                actual_result = "Request timeout"
+                                failure_reason = "Request timed out"
+                            elif 'Assertion' in output_text:
+                                actual_result = "Assertion failed"
+                                failure_reason = "Test assertion did not pass"
+                            else:
+                                # Extract first line of meaningful error
+                                lines = output_text.split('\n')
+                                for line in lines:
+                                    line = line.strip()
+                                    if line and not line.startswith('Test:') and not line.startswith('Description:'):
+                                        actual_result = "Test execution failed"
+                                        failure_reason = line[:100] + "..." if len(line) > 100 else line
+                                        break
                 
                 # If no specific failure reason found, use generic message
                 if not actual_result:
