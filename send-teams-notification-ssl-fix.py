@@ -373,7 +373,7 @@ def format_duration(seconds):
         minutes = int((seconds % 3600) // 60)
         return f"{hours}h {minutes}m"
 
-def create_teams_payload(test_data, environment="Development"):
+def create_teams_payload(test_data, environment="Development", browser="N/A"):
     """Create Microsoft Teams Adaptive Card payload"""
     timestamp = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
     
@@ -428,12 +428,20 @@ def create_teams_payload(test_data, environment="Development"):
                                     "value": str(test_data['failed_tests'])
                                 },
                                 {
+                                    "title": "Skipped",
+                                    "value": str(test_data['skipped_tests'])
+                                },
+                                {
                                     "title": "Success Rate",
                                     "value": f"{test_data['success_rate']}%"
                                 },
                                 {
                                     "title": "Duration",
                                     "value": duration_formatted
+                                },
+                                {
+                                    "title": "Browser",
+                                    "value": browser
                                 },
                                 {
                                     "title": "Timestamp",
@@ -455,6 +463,7 @@ def main():
     parser.add_argument('--xml', default='TestReports/TestResults.xml', help='XML file path')
     parser.add_argument('--webhook', help='Microsoft Teams webhook URL')
     parser.add_argument('--environment', default='Development', help='Environment name')
+    parser.add_argument('--browser', default='N/A', help='Browser information')
     parser.add_argument('--test', action='store_true', help='Send test notification')
     parser.add_argument('--verbose', action='store_true', help='Verbose output')
     
@@ -551,7 +560,7 @@ def main():
     
     # Create Teams payload
     safe_print("📤 Creating Teams notification...")
-    payload = create_teams_payload(test_data, args.environment)
+    payload = create_teams_payload(test_data, args.environment, args.browser)
     
     # Send notification
     safe_print("📤 Sending notification to Microsoft Teams...")

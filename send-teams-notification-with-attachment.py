@@ -89,7 +89,7 @@ def get_file_mime_type(file_path):
         # Default to HTML if we can't determine
         return 'text/html'
 
-def create_teams_payload_with_attachment(test_data, environment="Development", html_file_path=None):
+def create_teams_payload_with_attachment(test_data, environment="Development", browser="N/A", html_file_path=None):
     """Create Microsoft Teams Adaptive Card payload with HTML attachment"""
     timestamp = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
     
@@ -145,12 +145,20 @@ def create_teams_payload_with_attachment(test_data, environment="Development", h
                                     "value": str(test_data['failed_tests'])
                                 },
                                 {
+                                    "title": "Skipped",
+                                    "value": str(test_data['skipped_tests'])
+                                },
+                                {
                                     "title": "Success Rate",
                                     "value": f"{test_data['success_rate']}%"
                                 },
                                 {
                                     "title": "Duration",
                                     "value": duration_formatted
+                                },
+                                {
+                                    "title": "Browser",
+                                    "value": browser
                                 },
                                 {
                                     "title": "Timestamp",
@@ -467,6 +475,7 @@ def main():
     parser.add_argument('--output', default='TestReports', help='Output directory for HTML reports')
     parser.add_argument('--webhook', help='Microsoft Teams webhook URL')
     parser.add_argument('--environment', default='Development', help='Environment name')
+    parser.add_argument('--browser', default='N/A', help='Browser information')
     parser.add_argument('--test', action='store_true', help='Send test notification')
     parser.add_argument('--verbose', action='store_true', help='Verbose output')
     
@@ -557,7 +566,7 @@ def main():
     
     # Create Teams payload with attachment
     safe_print("📤 Creating Teams notification with HTML attachment...")
-    payload = create_teams_payload_with_attachment(test_data, args.environment, html_file_path)
+    payload = create_teams_payload_with_attachment(test_data, args.environment, args.browser, html_file_path)
     
     # Send notification
     safe_print("📤 Sending notification to Microsoft Teams...")

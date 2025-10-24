@@ -232,4 +232,3 @@ Your HTML test reports are now converted to professional PDF files that can be:
 - 🖨️ Printed for offline review
 - 📊 Shared with management
 - 🔗 Attached to Teams notifications
-

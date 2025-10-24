@@ -263,4 +263,3 @@ Your PDF test reports are now automatically sent to Microsoft Teams with:
 3. **Test Connection**: Test Teams webhook before sending actual PDFs
 4. **Monitor File Sizes**: Large PDFs may need to be shared via OneDrive/SharePoint
 5. **Use Complete Workflow**: For automated pipelines, use the complete workflow script
-

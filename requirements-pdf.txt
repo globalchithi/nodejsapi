@@ -8,4 +8,3 @@ cffi>=1.15.0
 Pillow>=9.0.0
 cairocffi>=1.4.0
 cairosvg>=2.5.0
-

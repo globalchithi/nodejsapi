@@ -260,4 +260,3 @@ Your PDF test reports can now be shared with your team through:
 3. **Include File Info**: Always include file size and location
 4. **Test Sharing**: Test the sharing method before automation
 5. **Keep Web Server Running**: If using download link method
-
