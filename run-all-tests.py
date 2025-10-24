@@ -119,6 +119,26 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
                 "Generating HTML report with Windows-compatible actual results parser"
             )
     
+    # Send Teams notification if requested (before final cleanup)
+    if args and args.teams:
+        safe_print("📤 Sending Teams notification...")
+        # Use the correct file for Teams notification (prefer TRX, fallback to XML)
+        notification_file = trx_file_to_use if trx_file_to_use and os.path.exists(trx_file_to_use) else xml_file_to_use
+        if notification_file and os.path.exists(notification_file):
+            # Use the simplified Teams notification script (no Skipped/Browser fields)
+            teams_success, _, _ = run_command(
+                f"python3 send-teams-notification.py --xml \"{notification_file}\" --environment \"{args.environment}\"",
+                "Sending Teams notification"
+            )
+        else:
+            safe_print("⚠️ No test results file found for Teams notification")
+            teams_success = False
+        
+        if teams_success:
+            safe_print("✅ Teams notification sent successfully!")
+        else:
+            safe_print("⚠️ Teams notification failed, but tests completed")
+    
     # Final cleanup: Remove all non-HTML files, keeping only HTML reports
     # This runs regardless of HTML report generation success
     clean_after_html_generation()
@@ -166,26 +186,6 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
             safe_print("✅ Enhanced HTML report generated successfully!")
         else:
             safe_print("⚠️ HTML report generation failed, but tests completed")
-    
-    # Send Teams notification if requested
-    if args and args.teams:
-        safe_print("📤 Sending Teams notification...")
-        # Use the correct file for Teams notification (prefer TRX, fallback to XML)
-        notification_file = trx_file_to_use if trx_file_to_use and os.path.exists(trx_file_to_use) else xml_file_to_use
-        if notification_file and os.path.exists(notification_file):
-            # Use the simplified Teams notification script (no Skipped/Browser fields)
-            teams_success, _, _ = run_command(
-                f"python3 send-teams-notification.py --xml \"{notification_file}\" --environment \"{args.environment}\"",
-                "Sending Teams notification"
-            )
-        else:
-            safe_print("⚠️ No test results file found for Teams notification")
-            teams_success = False
-        
-        if teams_success:
-            safe_print("✅ Teams notification sent successfully!")
-        else:
-            safe_print("⚠️ Teams notification failed, but tests completed")
     
     return success
 
