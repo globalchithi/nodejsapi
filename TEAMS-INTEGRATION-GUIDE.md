@@ -57,7 +57,7 @@ export TEAMS_BROWSER="Chrome (Headless)"
 - 📊 **Statistics** - Total, Passed, Failed, Skipped counts
 - 🎯 **Success Rate** - Percentage of passed tests
 - ⏱️ **Duration** - Total test execution time
-- 🌍 **Environment** - Development, Staging, Production
+- 🌍 **Environment** - Staging, Staging, Production
 - 🌐 **Browser** - Chrome, Firefox, Safari, etc.
 - 📅 **Timestamp** - When tests were executed
 
@@ -68,7 +68,7 @@ export TEAMS_BROWSER="Chrome (Headless)"
 API Test Results
 ✅ All 14 tests passed successfully!
 
-Environment: Development
+Environment: Staging
 Total Tests: 14
 Passed: 12
 Failed: 2
@@ -127,8 +127,8 @@ python3 send-teams-notification.py --webhook "https://your-webhook-url"
 
 ### **Environment-Specific Settings**
 ```bash
-# Development environment
-python3 run-all-tests.py --teams --environment "Development" --browser "Chrome"
+# Staging environment
+python3 run-all-tests.py --teams --environment "Staging" --browser "Chrome"
 
 # Staging environment
 python3 run-all-tests.py --teams --environment "Staging" --browser "Firefox"

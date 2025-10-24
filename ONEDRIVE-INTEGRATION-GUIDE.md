@@ -91,7 +91,7 @@ python3 upload-pdf-to-onedrive.py --client-id ID --client-secret SECRET --tenant
 
 📄 PDF Report: EnhancedTestReport_20251023_103356.pdf (1.2 MB)
 📁 File Location: /path/to/TestReports/EnhancedTestReport_20251023_103356.pdf
-🌍 Environment: Development
+🌍 Environment: Staging
 ⏰ Generated: 10/23/2025, 10:33:56 AM
 
 📋 Upload Instructions:
@@ -120,7 +120,7 @@ python3 upload-pdf-to-onedrive.py --client-id ID --client-secret SECRET --tenant
 File Details:
 - Name: EnhancedTestReport_20251023_103356.pdf
 - Location: OneDrive/SharePoint
-- Environment: Development
+- Environment: Staging
 - Generated: 10/23/2025, 10:33:56 AM
 - Access: Click the link above to download the PDF
 

@@ -219,7 +219,7 @@ def get_file_mime_type(file_path):
     else:
         return 'application/octet-stream'
 
-def create_teams_payload_with_pdf(test_data, pdf_file, environment="Development"):
+def create_teams_payload_with_pdf(test_data, pdf_file, environment="Staging"):
     """Create Microsoft Teams Adaptive Card payload with PDF attachment"""
     timestamp = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
     
@@ -375,7 +375,7 @@ def main():
     parser.add_argument('--xml', default='TestReports/TestResults.xml', help='XML file path')
     parser.add_argument('--pdf', help='PDF file path (if not provided, will find latest PDF)')
     parser.add_argument('--webhook', help='Microsoft Teams webhook URL')
-    parser.add_argument('--environment', default='Development', help='Environment name')
+    parser.add_argument('--environment', default='Staging', help='Environment name')
     parser.add_argument('--test', action='store_true', help='Send test notification')
     
     args = parser.parse_args()

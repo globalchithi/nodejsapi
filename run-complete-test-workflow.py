@@ -95,7 +95,7 @@ def find_latest_pdf():
         return None
     return max(pdf_files, key=os.path.getmtime)
 
-def send_to_teams_with_pdf(pdf_file, environment="Development"):
+def send_to_teams_with_pdf(pdf_file, environment="Staging"):
     """Send test results with PDF to Teams"""
     safe_print("📤 Step 4: Sending to Microsoft Teams...")
     success, _, _ = run_command(
@@ -104,7 +104,7 @@ def send_to_teams_with_pdf(pdf_file, environment="Development"):
     )
     return success
 
-def send_to_teams_with_onedrive(pdf_file, environment="Development"):
+def send_to_teams_with_onedrive(pdf_file, environment="Staging"):
     """Send test results with OneDrive upload instructions"""
     safe_print("📤 Step 4: Sending to Microsoft Teams with OneDrive instructions...")
     success, _, _ = run_command(
@@ -125,7 +125,7 @@ def main():
     safe_print("=" * 50)
     
     # Parse command line arguments
-    environment = "Development"
+    environment = "Staging"
     use_onedrive = False
     test_filter = None
     
@@ -141,7 +141,7 @@ def main():
                 safe_print("Usage: python3 run-complete-test-workflow.py [--environment ENV] [--onedrive] [--filter FILTER]")
                 safe_print("")
                 safe_print("Options:")
-                safe_print("  --environment ENV    Environment name (default: Development)")
+                safe_print("  --environment ENV    Environment name (default: Staging)")
                 safe_print("  --onedrive           Use OneDrive upload instructions")
                 safe_print("  --filter FILTER      Filter tests by class, method, or category")
                 safe_print("  --help              Show this help message")

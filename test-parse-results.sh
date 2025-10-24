@@ -80,8 +80,8 @@ echo ""
 # Test parsing without sending to Teams
 echo "🧪 Testing XML parsing (without sending to Teams)..."
 echo "💡 To test with PowerShell on Windows, use:"
-echo "   powershell -ExecutionPolicy Bypass -File \"parse-test-results.ps1\" -OutputDir \"TestReports\" -Environment \"Development\" -Browser \"Chrome\""
+echo "   powershell -ExecutionPolicy Bypass -File \"parse-test-results.ps1\" -OutputDir \"TestReports\" -Environment \"Staging\" -Browser \"Chrome\""
 echo ""
 echo "💡 To send to Teams on Windows, use:"
-echo "   parse-and-send-results.bat \"your-webhook-url\" \"Development\" \"Chrome\""
+echo "   parse-and-send-results.bat \"your-webhook-url\" \"Staging\" \"Chrome\""
 

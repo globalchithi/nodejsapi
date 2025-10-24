@@ -99,7 +99,7 @@ File Details:
 - Name: EnhancedTestReport_20251023_103356.pdf
 - Size: 1.2 MB
 - Location: TestReports/EnhancedTestReport_20251023_103356.pdf
-- Environment: Development
+- Environment: Staging
 - Generated: 10/23/2025, 10:33:56 AM
 
 💡 Tip: For easier sharing, upload this PDF to OneDrive or SharePoint and share the link with your team.
@@ -111,7 +111,7 @@ File Details:
 
 ✅ All 15 tests passed successfully!
 
-Environment: Development
+Environment: Staging
 Total Tests: 15
 Passed: 15
 Failed: 0

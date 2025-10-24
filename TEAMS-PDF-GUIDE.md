@@ -65,7 +65,7 @@ python3 run-tests-with-pdf-teams.py --environment "Staging"
 ### Example 5: Advanced PDF Sender
 ```bash
 # Send with test statistics
-python3 send-teams-notification-with-pdf.py --pdf report.pdf --xml TestResults.xml --environment "Development"
+python3 send-teams-notification-with-pdf.py --pdf report.pdf --xml TestResults.xml --environment "Staging"
 ```
 
 ## 📊 Teams Message Format
@@ -76,7 +76,7 @@ python3 send-teams-notification-with-pdf.py --pdf report.pdf --xml TestResults.x
 
 ✅ All 15 tests passed successfully!
 
-Environment: Development
+Environment: Staging
 Total Tests: 15
 Passed: 15
 Failed: 0
@@ -214,7 +214,7 @@ python3 run-tests-with-pdf-teams.py --environment "CI"
 
 ### ✅ What's Included
 - **Test Statistics**: Total, passed, failed, success rate
-- **Environment**: Development, Staging, Production, etc.
+- **Environment**: Staging, Staging, Production, etc.
 - **Duration**: Total test execution time
 - **PDF Info**: File name and size
 - **Timestamp**: When tests were run

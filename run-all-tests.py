@@ -72,7 +72,7 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
     xml_file = os.path.join(output_dir, f"TestResults_{timestamp}.xml")
     
     # Build test command
-    test_cmd = f"dotnet test --logger \"trx;LogFileName=TestResults_{timestamp}.trx\" --logger \"xunit;LogFileName={xml_file}\" --verbosity normal --results-directory \"{output_dir}\""
+    test_cmd = f"dotnet test --logger \"trx;LogFileName=TestResults_{timestamp}.trx\" --logger \"xunit;LogFileName=TestResults_{timestamp}.xml\" --verbosity normal --results-directory \"{output_dir}\""
     
     if test_filter:
         test_cmd += f" --filter \"{test_filter}\""
@@ -118,7 +118,16 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
                 f"python3 generate-enhanced-html-report-with-actual-results-windows.py --trx \"{trx_file_to_use}\" --output \"{output_dir}\"",
                 "Generating HTML report with Windows-compatible actual results parser"
             )
-    else:
+    
+    # Final cleanup: Remove all non-HTML files, keeping only HTML reports
+    # This runs regardless of HTML report generation success
+    clean_after_html_generation()
+    
+    # Open the HTML report automatically if requested
+    if args and not args.no_open:
+        open_html_report(output_dir)
+    
+    if not trx_file_to_use:
         # Fall back to XML file
         if not os.path.exists(xml_file):
             # Try to find any XML file in the output directory or subdirectories
@@ -180,6 +189,34 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
     
     return success
 
+def open_html_report(output_dir):
+    """Open the most recent HTML report in the default browser"""
+    try:
+        import glob
+        import webbrowser
+        from pathlib import Path
+        
+        # Find the most recent HTML report
+        html_files = glob.glob(os.path.join(output_dir, "**", "EnhancedTestReport*.html"), recursive=True)
+        
+        if html_files:
+            # Get the most recent HTML file
+            latest_html = max(html_files, key=os.path.getmtime)
+            safe_print(f"🌐 Opening HTML report: {latest_html}")
+            
+            # Convert to absolute path for better compatibility
+            abs_path = os.path.abspath(latest_html)
+            
+            # Open in default browser
+            webbrowser.open(f"file://{abs_path}")
+            safe_print("✅ HTML report opened in default browser")
+        else:
+            safe_print("⚠️ No HTML report found to open")
+            
+    except Exception as e:
+        safe_print(f"⚠️ Could not open HTML report: {e}")
+        safe_print(f"📁 Reports are available in: {output_dir}")
+
 def run_specific_test_categories():
     """Run tests by category"""
     categories = {
@@ -196,6 +233,159 @@ def run_specific_test_categories():
     
     return categories
 
+def clean_test_reports():
+    """Clean TestReports folder, keeping only the latest files of each type"""
+    try:
+        import glob
+        
+        reports_dir = "TestReports"
+        if not os.path.exists(reports_dir):
+            return
+        
+        # Define file patterns to clean (keep latest of each type)
+        file_patterns = {
+            'HTML Reports': '*.html',
+            'TRX Files': '*.trx', 
+            'XML Files': '*.xml',
+            'JSON Files': '*.json',
+            'MD Files': '*.md',
+            'PDF Files': '*.pdf'
+        }
+        
+        total_removed = 0
+        safe_print(f"🧹 Cleaning TestReports folder...")
+        safe_print(f"📁 Cleaning all file types, keeping latest of each...")
+        
+        for file_type, pattern in file_patterns.items():
+            # Find all files matching this pattern
+            files = glob.glob(os.path.join(reports_dir, pattern))
+            
+            if len(files) <= 1:
+                # Keep all if 1 or fewer files
+                continue
+            
+            # Sort by modification time (newest first)
+            files.sort(key=os.path.getmtime, reverse=True)
+            
+            # Keep only the latest file
+            latest_file = files[0]
+            files_to_delete = files[1:]
+            
+            safe_print(f"📄 {file_type}: Keeping {os.path.basename(latest_file)}")
+            
+            for file_to_delete in files_to_delete:
+                try:
+                    os.remove(file_to_delete)
+                    safe_print(f"🗑️  Removed: {os.path.basename(file_to_delete)}")
+                    total_removed += 1
+                except Exception as e:
+                    safe_print(f"⚠️  Could not remove {os.path.basename(file_to_delete)}: {e}")
+        
+        # Also clean any subdirectories that might contain old reports
+        subdirs = [d for d in os.listdir(reports_dir) if os.path.isdir(os.path.join(reports_dir, d))]
+        for subdir in subdirs:
+            subdir_path = os.path.join(reports_dir, subdir)
+            
+            # Clean all file types in subdirectories too
+            for file_type, pattern in file_patterns.items():
+                subdir_files = glob.glob(os.path.join(subdir_path, pattern))
+                if len(subdir_files) > 1:
+                    subdir_files.sort(key=os.path.getmtime, reverse=True)
+                    files_to_delete = subdir_files[1:]
+                    for file_to_delete in files_to_delete:
+                        try:
+                            os.remove(file_to_delete)
+                            safe_print(f"🗑️  Removed from {subdir}: {os.path.basename(file_to_delete)}")
+                            total_removed += 1
+                        except Exception as e:
+                            safe_print(f"⚠️  Could not remove {os.path.basename(file_to_delete)}: {e}")
+            
+            # If the subdirectory is empty after cleaning, remove it
+            try:
+                remaining_files = os.listdir(subdir_path)
+                if not remaining_files:
+                    os.rmdir(subdir_path)
+                    safe_print(f"🗑️  Removed empty subdirectory: {subdir}")
+            except Exception as e:
+                safe_print(f"⚠️  Could not remove subdirectory {subdir}: {e}")
+        
+        safe_print(f"✅ TestReports folder cleaned successfully!")
+        safe_print(f"📊 Total files removed: {total_removed}")
+        
+    except Exception as e:
+        safe_print(f"⚠️  Error cleaning TestReports folder: {e}")
+
+def clean_after_html_generation():
+    """Clean all non-HTML files after HTML report generation, keeping only HTML files"""
+    try:
+        import glob
+        
+        reports_dir = "TestReports"
+        if not os.path.exists(reports_dir):
+            return
+        
+        # Define file patterns to remove (everything except HTML)
+        file_patterns_to_remove = {
+            'TRX Files': '*.trx', 
+            'XML Files': '*.xml',
+            'JSON Files': '*.json',
+            'MD Files': '*.md',
+            'PDF Files': '*.pdf'
+        }
+        
+        total_removed = 0
+        safe_print(f"🧹 Final cleanup: Removing all non-HTML files...")
+        safe_print(f"📁 Keeping only HTML reports...")
+        
+        for file_type, pattern in file_patterns_to_remove.items():
+            # Find all files matching this pattern
+            files = glob.glob(os.path.join(reports_dir, pattern))
+            
+            if len(files) == 0:
+                continue
+            
+            safe_print(f"🗑️  Removing all {file_type}...")
+            
+            for file_to_delete in files:
+                try:
+                    os.remove(file_to_delete)
+                    safe_print(f"🗑️  Removed: {os.path.basename(file_to_delete)}")
+                    total_removed += 1
+                except Exception as e:
+                    safe_print(f"⚠️  Could not remove {os.path.basename(file_to_delete)}: {e}")
+        
+        # Also clean any subdirectories
+        subdirs = [d for d in os.listdir(reports_dir) if os.path.isdir(os.path.join(reports_dir, d))]
+        for subdir in subdirs:
+            subdir_path = os.path.join(reports_dir, subdir)
+            
+            # Remove all non-HTML files in subdirectories
+            for file_type, pattern in file_patterns_to_remove.items():
+                subdir_files = glob.glob(os.path.join(subdir_path, pattern))
+                for file_to_delete in subdir_files:
+                    try:
+                        os.remove(file_to_delete)
+                        safe_print(f"🗑️  Removed from {subdir}: {os.path.basename(file_to_delete)}")
+                        total_removed += 1
+                    except Exception as e:
+                        safe_print(f"⚠️  Could not remove {os.path.basename(file_to_delete)}: {e}")
+            
+            # If the subdirectory is empty after cleaning, remove it
+            try:
+                remaining_files = os.listdir(subdir_path)
+                if not remaining_files:
+                    os.rmdir(subdir_path)
+                    safe_print(f"🗑️  Removed empty subdirectory: {subdir}")
+            except Exception as e:
+                safe_print(f"⚠️  Could not remove subdirectory {subdir}: {e}")
+        
+        safe_print(f"✅ Final cleanup completed!")
+        safe_print(f"📊 Total non-HTML files removed: {total_removed}")
+        safe_print(f"📄 Only HTML reports remain in TestReports folder")
+        
+    except Exception as e:
+        safe_print(f"⚠️  Error in final cleanup: {e}")
+
 def main():
     parser = argparse.ArgumentParser(description='Run all tests with enhanced HTML reporting')
     parser.add_argument('--filter', help='Test filter (e.g., "FullyQualifiedName~Inventory")')
@@ -206,8 +396,11 @@ def main():
     parser.add_argument('--list-categories', action='store_true', help='List available test categories')
     parser.add_argument('--teams', action='store_true', help='Send results to Microsoft Teams')
     parser.add_argument('--webhook', help='Microsoft Teams webhook URL')
-    parser.add_argument('--environment', default='Development', help='Environment name for Teams notification')
+    parser.add_argument('--environment', default='Staging', help='Environment name for Teams notification')
     parser.add_argument('--browser', default='N/A', help='Browser information for Teams notification')
+    parser.add_argument('--open-report', action='store_true', default=True, help='Open HTML report in browser after completion (default: True)')
+    parser.add_argument('--no-open', action='store_true', help='Do not open HTML report automatically')
+    parser.add_argument('--no-clean', action='store_true', help='Do not clean TestReports folder before running tests')
     
     args = parser.parse_args()
     
@@ -222,6 +415,11 @@ def main():
     # Check prerequisites
     if not check_dotnet():
         sys.exit(1)
+    
+    # Clean TestReports folder before running tests (unless disabled)
+    if not args.no_clean:
+        clean_test_reports()
+        safe_print("")
     
     # Clean and restore if requested
     if args.clean:
@@ -242,7 +440,11 @@ def main():
     if success:
         safe_print("\n🎉 Test execution completed successfully!")
         safe_print(f"📁 Reports saved in: {args.output}")
-        safe_print("📄 Open the HTML report to view detailed results")
+        safe_print("📄 HTML report contains detailed results with actual results and failure reasons")
+        
+        # If report wasn't opened automatically, show how to open it
+        if args.no_open:
+            safe_print("💡 To open the HTML report manually, navigate to the reports directory and open the HTML file")
     else:
         safe_print("\n❌ Test execution failed")
         sys.exit(1)

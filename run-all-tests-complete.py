@@ -41,7 +41,7 @@ def main():
     safe_print("=" * 40)
     
     # Parse command line arguments
-    environment = "Development"
+    environment = "Staging"
     use_onedrive = False
     test_filter = None
     
@@ -63,7 +63,7 @@ def main():
                 safe_print("4. 📤 Send results to Teams")
                 safe_print("")
                 safe_print("Options:")
-                safe_print("  --environment ENV    Environment name (default: Development)")
+                safe_print("  --environment ENV    Environment name (default: Staging)")
                 safe_print("  --onedrive           Use OneDrive upload instructions")
                 safe_print("  --filter FILTER      Filter tests by class, method, or category")
                 safe_print("  --help              Show this help message")

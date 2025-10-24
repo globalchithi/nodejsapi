@@ -21,7 +21,7 @@ echo
 # Test 2: Test with existing XML file
 echo "📤 Test 2: Testing with existing XML file..."
 if [ -f "TestReports/TestResults.xml" ]; then
-    python3 send-teams-notification.py --xml TestReports/TestResults.xml --environment "Development" --browser "Chrome (Headless)"
+    python3 send-teams-notification.py --xml TestReports/TestResults.xml --environment "Staging" --browser "Chrome (Headless)"
     if [ $? -eq 0 ]; then
         echo "✅ XML notification: SUCCESS"
     else

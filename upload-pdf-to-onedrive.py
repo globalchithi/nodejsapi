@@ -147,7 +147,7 @@ def create_share_link(file_id, access_token, permission_type="view"):
         safe_print(f"❌ Error creating share link: {e}")
         return None
 
-def send_teams_notification_with_share_link(share_link, file_name, environment="Development"):
+def send_teams_notification_with_share_link(share_link, file_name, environment="Staging"):
     """Send Teams notification with OneDrive share link"""
     try:
         # Create Teams message
@@ -218,7 +218,7 @@ def main():
     parser.add_argument('--client-secret', help='Azure App Client Secret')
     parser.add_argument('--tenant-id', help='Azure Tenant ID')
     parser.add_argument('--folder', default='TestReports', help='OneDrive folder name')
-    parser.add_argument('--environment', default='Development', help='Environment name')
+    parser.add_argument('--environment', default='Staging', help='Environment name')
     parser.add_argument('--teams', action='store_true', help='Send Teams notification with share link')
     
     args = parser.parse_args()

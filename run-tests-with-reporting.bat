@@ -13,7 +13,7 @@ set "FILTER="
 if "%OPEN_REPORTS%"=="" set "OPEN_REPORTS=false"
 if "%VERBOSE%"=="" set "VERBOSE=false"
 if "%OUTPUT_FORMAT%"=="" set "OUTPUT_FORMAT=html,json,markdown"
-if "%ENVIRONMENT%"=="" set "ENVIRONMENT=Development"
+if "%ENVIRONMENT%"=="" set "ENVIRONMENT=Staging"
 if "%BROWSER%"=="" set "BROWSER=N/A"
 if "%REPORTS_DIR%"=="" set "REPORTS_DIR=TestReports"
 if "%PROJECT_NAME%"=="" set "PROJECT_NAME=VaxCareApiTests"
@@ -209,7 +209,7 @@ echo   -o, --open          Open generated reports automatically
 echo   -v, --verbose       Show verbose output
 echo   -f, --format FORMAT Output formats (html,json,markdown)
 echo   --teams URL         Send results to Microsoft Teams webhook
-echo   --env NAME          Environment name (default: Development)
+echo   --env NAME          Environment name (default: Staging)
 echo   --browser NAME      Browser used for tests (default: N/A)
 echo.
 echo Examples:

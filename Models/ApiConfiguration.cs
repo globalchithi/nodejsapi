@@ -17,7 +17,7 @@ public class ApiConfiguration
 public class TestConfiguration
 {
     [JsonPropertyName("Environment")]
-    public string Environment { get; set; } = "Development";
+    public string Environment { get; set; } = "Staging";
     
     [JsonPropertyName("LogLevel")]
     public string LogLevel { get; set; } = "Information";

@@ -80,7 +80,7 @@ python3 send-teams-notification-with-attachment.py --test
 API Test Results
 ✅ All 14 tests passed successfully!
 
-Environment: Development
+Environment: Staging
 Total Tests: 14
 Passed: 12
 Failed: 2
@@ -180,7 +180,7 @@ python3 send-teams-notification-with-attachment.py --xml TestReports/TestResults
 - `--html` - HTML report file path (auto-detected if not specified)
 - `--output` - Output directory for HTML reports (default: TestReports)
 - `--webhook` - Microsoft Teams webhook URL
-- `--environment` - Environment name (default: Development)
+- `--environment` - Environment name (default: Staging)
 - `--browser` - Browser information (default: N/A)
 
 ### **Automatic HTML Detection:**

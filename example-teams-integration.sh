@@ -19,7 +19,7 @@ echo "📤 Example 2: Send notification for existing test results"
 echo "Command: python3 send-teams-notification.py --xml TestReports/TestResults.xml"
 echo
 if [ -f "TestReports/TestResults.xml" ]; then
-    python3 send-teams-notification.py --xml TestReports/TestResults.xml --environment "Development" --browser "Chrome (Headless)"
+    python3 send-teams-notification.py --xml TestReports/TestResults.xml --environment "Staging" --browser "Chrome (Headless)"
 else
     echo "⚠️ No existing test results found. Run tests first."
 fi

@@ -11,6 +11,72 @@ import json
 from datetime import datetime
 import argparse
 
+def generate_expected_result(test_name, class_name):
+    """Generate more accurate expected results based on test name patterns"""
+    method_name = test_name.split('.')[-1] if '.' in test_name else test_name
+    
+    # Generate more accurate expected results based on test name patterns
+    if 'ShouldValidate' in method_name:
+        if 'RequiredHeaders' in method_name:
+            return "All required headers validated successfully"
+        elif 'EndpointStructure' in method_name:
+            return "Endpoint structure and format validated"
+        elif 'DateFormats' in method_name:
+            return "Date parameter formats validated"
+        elif 'VersionFormats' in method_name:
+            return "Version parameter formats validated"
+        elif 'ClinicIdFormats' in method_name:
+            return "Clinic ID parameter formats validated"
+        elif 'QueryParameters' in method_name:
+            return "Query parameters validated successfully"
+        elif 'CurlCommandStructure' in method_name:
+            return "Curl command structure validated"
+        elif 'AuthenticationHeaders' in method_name:
+            return "Authentication headers handled correctly"
+        else:
+            return "Validation passed successfully"
+    elif 'ShouldReturn' in method_name:
+        if 'InventoryProducts' in method_name:
+            return "200 OK with inventory products data"
+        elif 'LotNumbersData' in method_name:
+            return "200 OK with lot numbers data"
+        elif 'LotInventoryData' in method_name:
+            return "200 OK with lot inventory data"
+        elif 'ClinicData' in method_name:
+            return "200 OK with clinic data"
+        elif 'InsuranceData' in method_name:
+            return "200 OK with insurance data"
+        elif 'ProvidersData' in method_name:
+            return "200 OK with providers data"
+        elif 'ShotAdministratorsData' in method_name:
+            return "200 OK with shot administrators data"
+        elif 'UsersPartnerLevelData' in method_name:
+            return "200 OK with users partner level data"
+        elif 'LocationData' in method_name:
+            return "200 OK with location data"
+        elif 'CheckData' in method_name:
+            return "200 OK with check data response"
+        elif 'AppointmentData' in method_name:
+            return "200 OK with appointment data"
+        elif 'AppointmentId' in method_name:
+            return "200 OK with appointment ID returned"
+        else:
+            return "200 OK with data returned"
+    elif 'ShouldHandle' in method_name:
+        if 'UniquePatientNames' in method_name:
+            return "200 OK with unique patient appointment created"
+        elif 'InvalidAppointmentId' in method_name:
+            return "400 Bad Request or appropriate error for invalid appointment ID"
+        else:
+            return "Proper handling of scenario"
+    elif 'ShouldDemonstrate' in method_name:
+        if 'ResponseLogging' in method_name:
+            return "Response logging demonstrated successfully"
+        else:
+            return "Demonstration completed successfully"
+    else:
+        return "Test execution completed successfully"
+
 def load_test_info():
     """Load test information from TestInfo.json"""
     try:
@@ -87,6 +153,10 @@ def parse_xml_with_regex(xml_file, test_info):
         except ValueError:
             duration = 0.0
         
+        # Skip skipped tests - exclude from report
+        if test_result == 'Skip':
+            continue
+        
         # Get test info if available
         test_info_for_test = test_info.get(test_name, {})
         
@@ -125,7 +195,7 @@ def parse_xml_with_regex(xml_file, test_info):
             'description': test_info_for_test.get('description', ''),
             'test_type': test_info_for_test.get('testType', ''),
             'endpoint': test_info_for_test.get('endpoint', ''),
-            'expected_result': test_info_for_test.get('expectedResult', ''),
+            'expected_result': test_info_for_test.get('expectedResult', '') or generate_expected_result(test_name, class_name) or generate_expected_result(test_name, class_name),
             'actual_result': actual_result,
             'failure_reason': failure_reason
         })
@@ -134,8 +204,10 @@ def parse_xml_with_regex(xml_file, test_info):
     total_tests = len(test_details)
     passed_tests = len([t for t in test_details if t['result'] == 'Pass'])
     failed_tests = len([t for t in test_details if t['result'] == 'Fail'])
-    skipped_tests = len([t for t in test_details if t['result'] == 'Skip'])
-    success_rate = round((passed_tests / total_tests) * 100, 1) if total_tests > 0 else 0
+    skipped_tests = 0  # Skipped tests are excluded from report
+    # Calculate success rate (excluding skipped tests from denominator)
+    executed_tests = passed_tests + failed_tests
+    success_rate = round((passed_tests / executed_tests) * 100, 1) if executed_tests > 0 else 0
     
     return {
         'total_tests': total_tests,
@@ -207,6 +279,10 @@ def extract_from_xml_tree(tree, test_info):
         # Format display name
         display_name = test_name.split('.')[-1].replace('_', ' ')
         
+        # Skip skipped tests - exclude from report
+        if test_result == 'Skip':
+            continue
+        
         # Get test info if available
         test_info_for_test = test_info.get(test_name, {})
         
@@ -221,15 +297,17 @@ def extract_from_xml_tree(tree, test_info):
             'description': test_info_for_test.get('description', ''),
             'test_type': test_info_for_test.get('testType', ''),
             'endpoint': test_info_for_test.get('endpoint', ''),
-            'expected_result': test_info_for_test.get('expectedResult', '')
+            'expected_result': test_info_for_test.get('expectedResult', '') or generate_expected_result(test_name, class_name)
         })
     
     # Calculate statistics
     total_tests = len(test_details)
     passed_tests = len([t for t in test_details if t['result'] == 'Pass'])
     failed_tests = len([t for t in test_details if t['result'] == 'Fail'])
-    skipped_tests = len([t for t in test_details if t['result'] == 'Skip'])
-    success_rate = round((passed_tests / total_tests) * 100, 1) if total_tests > 0 else 0
+    skipped_tests = 0  # Skipped tests are excluded from report
+    # Calculate success rate (excluding skipped tests from denominator)
+    executed_tests = passed_tests + failed_tests
+    success_rate = round((passed_tests / executed_tests) * 100, 1) if executed_tests > 0 else 0
     
     return {
         'total_tests': total_tests,
@@ -261,7 +339,6 @@ def generate_html_report(data, output_path):
         .stat-label {{ color: #666; }}
         .passed .stat-number {{ color: #28a745; }}
         .failed .stat-number {{ color: #dc3545; }}
-        .skipped .stat-number {{ color: #ffc107; }}
         .total .stat-number {{ color: #007bff; }}
         .success-rate .stat-number {{ color: #6f42c1; }}
         .test-table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
@@ -270,7 +347,6 @@ def generate_html_report(data, output_path):
         .test-table tbody tr:hover {{ background-color: #f5f5f5; }}
         .status-passed {{ color: #28a745; font-weight: bold; }}
         .status-failed {{ color: #dc3545; font-weight: bold; background-color: #f8d7da; padding: 5px; border-radius: 3px; }}
-        .status-skipped {{ color: #ffc107; font-weight: bold; }}
         .failed-test-row {{ background-color: #f8d7da; }}
         .actual-result {{ color: #dc3545; font-weight: bold; margin-top: 5px; }}
         .failure-reason {{ color: #dc3545; font-style: italic; margin-top: 3px; font-size: 0.9em; }}
@@ -295,10 +371,6 @@ def generate_html_report(data, output_path):
                 <div class="stat-number">{data['failed_tests']}</div>
                 <div class="stat-label">Failed</div>
             </div>
-            <div class="stat-card skipped">
-                <div class="stat-number">{data['skipped_tests']}</div>
-                <div class="stat-label">Skipped</div>
-            </div>
             <div class="stat-card total">
                 <div class="stat-number">{data['total_tests']}</div>
                 <div class="stat-label">Total</div>
@@ -309,7 +381,6 @@ def generate_html_report(data, output_path):
             </div>
         </div>
         
-        <h2>Test Results</h2>
         <table class="test-table">
             <thead>
                 <tr>
@@ -328,11 +399,10 @@ def generate_html_report(data, output_path):
         
         # Add test information if available
         test_info_html = ""
-        if test.get('description') or test.get('endpoint') or test.get('test_type') or test.get('expected_result'):
+        if test.get('description') or test.get('endpoint') or test.get('expected_result'):
             test_info_html = f"""
                 <div style="margin-top: 10px; padding: 10px; background: #e9ecef; border-radius: 4px; font-size: 0.9em;">
                     {f"<div><strong>📋 Description:</strong> {test['description']}</div>" if test.get('description') else ""}
-                    {f"<div><strong>🎯 Test Type:</strong> {test['test_type']}</div>" if test.get('test_type') else ""}
                     {f"<div><strong>🔗 Endpoint:</strong> {test['endpoint']}</div>" if test.get('endpoint') else ""}
                     {f"<div><strong>📊 Expected Result:</strong> {test['expected_result']}</div>" if test.get('expected_result') else ""}
                 </div>"""

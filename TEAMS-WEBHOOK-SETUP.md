@@ -85,10 +85,10 @@ https://default809ba6beb3bb4f08a26065732b2a2b.36.environment.api.powerplatform.c
 ### **Multiple Environments Setup**
 You can create different channels for different environments:
 
-#### **Development Channel:**
+#### **Staging Channel:**
 - Channel: `#test-results-dev`
 - Webhook: `DEV_WEBHOOK_URL`
-- Usage: `python3 run-all-tests.py --teams --environment "Development"`
+- Usage: `python3 run-all-tests.py --teams --environment "Staging"`
 
 #### **Staging Channel:**
 - Channel: `#test-results-staging`
@@ -103,9 +103,9 @@ You can create different channels for different environments:
 ### **Environment Variables Setup**
 Create a `.env` file in your project root:
 ```bash
-# Development
+# Staging
 DEV_TEAMS_WEBHOOK_URL="https://your-dev-webhook-url"
-DEV_ENVIRONMENT="Development"
+DEV_ENVIRONMENT="Staging"
 DEV_BROWSER="Chrome (Headless)"
 
 # Staging
@@ -189,7 +189,7 @@ python3 send-teams-notification.py --test --verbose
 API Test Results
 ✅ All 14 tests passed successfully!
 
-Environment: Development
+Environment: Staging
 Total Tests: 14
 Passed: 12
 Failed: 2

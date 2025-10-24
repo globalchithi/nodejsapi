@@ -88,7 +88,7 @@ def find_latest_pdf():
         return None
     return max(pdf_files, key=os.path.getmtime)
 
-def send_to_teams(pdf_file, environment="Development"):
+def send_to_teams(pdf_file, environment="Staging"):
     """Send test results with PDF to Teams"""
     safe_print("📤 Sending to Microsoft Teams...")
     success, _, _ = run_command(
@@ -103,7 +103,7 @@ def main():
     safe_print("=" * 60)
     
     # Parse command line arguments
-    environment = "Development"
+    environment = "Staging"
     if len(sys.argv) > 1:
         for i, arg in enumerate(sys.argv[1:]):
             if arg == "--environment" and i + 1 < len(sys.argv):
@@ -119,7 +119,7 @@ def main():
                 safe_print("5. Send results with PDF to Teams")
                 safe_print("")
                 safe_print("Options:")
-                safe_print("  --environment ENV    Environment name (default: Development)")
+                safe_print("  --environment ENV    Environment name (default: Staging)")
                 safe_print("  --help              Show this help message")
                 return
     

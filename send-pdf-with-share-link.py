@@ -55,7 +55,7 @@ def run_command(command, description):
             safe_print(f"Error: {process.stderr}")
         return False, process.stdout, process.stderr
 
-def send_to_teams_with_share_link(pdf_file, environment="Development"):
+def send_to_teams_with_share_link(pdf_file, environment="Staging"):
     """Send PDF to Teams with share link"""
     # Create share link
     share_link, relative_path, abs_path = create_share_link(pdf_file)
@@ -116,7 +116,7 @@ def main():
     """Main function"""
     parser = argparse.ArgumentParser(description='Send PDF to Teams with share link')
     parser.add_argument('--pdf', help='PDF file path (if not provided, will find latest PDF)')
-    parser.add_argument('--environment', default='Development', help='Environment name')
+    parser.add_argument('--environment', default='Staging', help='Environment name')
     
     args = parser.parse_args()
     

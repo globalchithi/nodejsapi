@@ -202,7 +202,7 @@ File Details:
 - Name: EnhancedTestReport_2025-10-23_10-33-56.pdf
 - Size: 1.2 MB
 - Location: TestReports/EnhancedTestReport_2025-10-23_10-33-56.pdf
-- Environment: Development
+- Environment: Staging
 - Generated: 10/23/2025, 10:33:56 AM
 - Filter: ClassName=PatientsAppointmentCheckoutTests
 
@@ -303,7 +303,7 @@ python3 run-all-tests-complete.py --filter "FullyQualifiedName!~Skip"
 ### Environment-Specific Filters
 ```bash
 # Different filters for different environments
-python3 run-all-tests-complete.py --filter "Category=Smoke" --environment "Development"
+python3 run-all-tests-complete.py --filter "Category=Smoke" --environment "Staging"
 python3 run-all-tests-complete.py --filter "Category=Integration" --environment "Staging"
 python3 run-all-tests-complete.py --filter "Category=Full" --environment "Production"
 ```

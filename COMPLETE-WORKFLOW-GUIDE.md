@@ -115,7 +115,7 @@ File Details:
 - Name: EnhancedTestReport_2025-10-23_10-33-56.pdf
 - Size: 1.2 MB
 - Location: TestReports/EnhancedTestReport_2025-10-23_10-33-56.pdf
-- Environment: Development
+- Environment: Staging
 - Generated: 10/23/2025, 10:33:56 AM
 
 💡 Tip: For easier sharing, upload this PDF to OneDrive or SharePoint and share the link with your team.
@@ -127,7 +127,7 @@ File Details:
 
 📄 PDF Report: EnhancedTestReport_2025-10-23_10-33-56.pdf (1.2 MB)
 📁 File Location: /path/to/TestReports/EnhancedTestReport_2025-10-23_10-33-56.pdf
-🌍 Environment: Development
+🌍 Environment: Staging
 ⏰ Generated: 10/23/2025, 10:33:56 AM
 
 📋 Upload Instructions:
@@ -202,7 +202,7 @@ python3 run-all-tests-complete.py --onedrive
 ### 4. Test the Workflow
 ```bash
 # Test before automation
-python3 run-complete-test-workflow.py --environment "Development"
+python3 run-complete-test-workflow.py --environment "Staging"
 ```
 
 ## 📋 Integration Examples
@@ -243,7 +243,7 @@ python3 run-all-tests-complete.py --onedrive --environment "Production"
 ### Detailed Logging
 ```bash
 # Use detailed workflow for debugging
-python3 run-complete-test-workflow.py --environment "Development"
+python3 run-complete-test-workflow.py --environment "Staging"
 ```
 
 ## 📁 File Structure After Workflow

@@ -90,7 +90,7 @@ TEAMS_WEBHOOK_URL=https://your-webhook-url
 SEND_TEAMS_NOTIFICATION=true
 
 # Environment
-ENVIRONMENT=Development
+ENVIRONMENT=Staging
 BROWSER=Chrome
 
 # Test Settings

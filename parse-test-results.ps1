@@ -2,7 +2,7 @@ param(
     [string]$XmlFile = "",
     [string]$OutputDir = "TestReports",
     [string]$WebhookUrl = "",
-    [string]$Environment = "Development",
+    [string]$Environment = "Staging",
     [string]$Browser = "N/A"
 )
 

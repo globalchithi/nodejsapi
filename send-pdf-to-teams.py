@@ -32,7 +32,7 @@ def main():
     """Main function"""
     parser = argparse.ArgumentParser(description='Send PDF to Microsoft Teams')
     parser.add_argument('--pdf', help='PDF file path (if not provided, will find latest PDF)')
-    parser.add_argument('--environment', default='Development', help='Environment name')
+    parser.add_argument('--environment', default='Staging', help='Environment name')
     parser.add_argument('--webhook', help='Microsoft Teams webhook URL')
     
     args = parser.parse_args()

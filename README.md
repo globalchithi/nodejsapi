@@ -26,7 +26,7 @@ VaxCareApiTests/
 ├── VaxCareApiTests.csproj   # C# project file with dependencies
 ├── Program.cs               # Main application entry point
 ├── appsettings.json        # Configuration file
-├── appsettings.Development.json # Development configuration
+├── appsettings.Staging.json # Staging configuration
 ├── Models/
 │   ├── ApiConfiguration.cs  # Configuration models
 │   └── VaxHubIdentifier.cs  # API response models
@@ -135,7 +135,7 @@ The project includes comprehensive automated test reporting with Microsoft Teams
 run-tests-with-reporting.bat
 
 # Parse existing results and send to Teams
-parse-and-send-results.bat "https://your-webhook-url" "Development" "Chrome"
+parse-and-send-results.bat "https://your-webhook-url" "Staging" "Chrome"
 
 # Test with sample data
 test-parse-results.bat
@@ -144,7 +144,7 @@ test-parse-results.bat
 **macOS/Linux:**
 ```bash
 # Parse existing results and send to Teams
-./parse-test-results.sh "https://your-webhook-url" "Development" "Chrome"
+./parse-test-results.sh "https://your-webhook-url" "Staging" "Chrome"
 
 # Test with sample data
 ./test-parse-results.sh
@@ -154,7 +154,7 @@ test-parse-results.bat
 - **Real test statistics**: Total, passed, failed, skipped tests
 - **Success rate calculation**: Automatic percentage calculation
 - **Execution time formatting**: Human-readable duration
-- **Environment details**: Development, Staging, Production
+- **Environment details**: Staging, Staging, Production
 - **Adaptive Cards**: Rich Teams notifications with test data
 - **Error handling**: Robust XML parsing with auto-repair
 
@@ -172,7 +172,7 @@ TEAMS_WEBHOOK_URL=https://your-webhook-url
 SEND_TEAMS_NOTIFICATION=true
 
 # Test Environment Configuration
-ENVIRONMENT=Development
+ENVIRONMENT=Staging
 BROWSER=Chrome
 
 # Report Directory
@@ -182,7 +182,7 @@ REPORTS_DIR=TestReports
 #### **Sample Teams Notification**
 The system sends rich Adaptive Cards to Teams with:
 - **Test Status**: ✅ All 14 tests passed successfully!
-- **Environment**: Development
+- **Environment**: Staging
 - **Total Tests**: 14
 - **Passed**: 12
 - **Failed**: 2
@@ -451,7 +451,7 @@ var identifier = _testUtilities.DecodeVaxHubIdentifier(token);
 - **Microsoft.Extensions.Http**: HTTP client factory
 - **Newtonsoft.Json**: JSON serialization
 
-### **Development Dependencies**
+### **Staging Dependencies**
 - **Microsoft.NET.Test.Sdk**: Test SDK
 - **coverlet.collector**: Code coverage collection
 - **Microsoft.Extensions.Logging**: Structured logging
@@ -524,7 +524,7 @@ public async Task ApiPerformanceTest()
 run-tests-with-reporting.bat
 
 # Parse existing results and send to Teams
-parse-and-send-results.bat "https://your-webhook-url" "Development" "Chrome"
+parse-and-send-results.bat "https://your-webhook-url" "Staging" "Chrome"
 
 # Test with sample data
 test-parse-results.bat
@@ -536,7 +536,7 @@ test-teams-webhook.bat "https://your-webhook-url"
 ### **macOS/Linux Commands**
 ```bash
 # Parse existing results and send to Teams
-./parse-test-results.sh "https://your-webhook-url" "Development" "Chrome"
+./parse-test-results.sh "https://your-webhook-url" "Staging" "Chrome"
 
 # Test with sample data
 ./test-parse-results.sh
@@ -550,7 +550,7 @@ Create `.env` file:
 ```env
 TEAMS_WEBHOOK_URL=https://your-webhook-url
 SEND_TEAMS_NOTIFICATION=true
-ENVIRONMENT=Development
+ENVIRONMENT=Staging
 BROWSER=Chrome
 ```
 

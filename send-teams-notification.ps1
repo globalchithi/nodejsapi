@@ -2,7 +2,7 @@ param(
     [string]$TeamsWebhookUrl = "",
     [string]$XmlFile = "",
     [string]$OutputDir = "TestReports",
-    [string]$Environment = "Development",
+    [string]$Environment = "Staging",
     [string]$Browser = "N/A",
     [switch]$Help
 )
@@ -17,7 +17,7 @@ if ($Help) {
     Write-Host "  -TeamsWebhookUrl URL    Microsoft Teams webhook URL"
     Write-Host "  -XmlFile PATH          Path to test results XML file"
     Write-Host "  -OutputDir PATH         Output directory for reports"
-    Write-Host "  -Environment NAME      Environment name (default: Development)"
+    Write-Host "  -Environment NAME      Environment name (default: Staging)"
     Write-Host "  -Browser NAME           Browser used for tests (default: N/A)"
     Write-Host "  -Help                   Show this help message"
     Write-Host ""

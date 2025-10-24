@@ -57,7 +57,7 @@ python3 run-all-tests.py --teams --environment "Staging" --browser "Firefox"
 API Test Results
 ✅ All 14 tests passed successfully!
 
-Environment: Development
+Environment: Staging
 Total Tests: 14
 Passed: 12
 Failed: 2

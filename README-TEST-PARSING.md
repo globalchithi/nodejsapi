@@ -35,7 +35,7 @@ Missing closing '}' in statement block or type definition.
 ### **Windows (PowerShell)**
 ```cmd
 # Parse existing results and send to Teams
-parse-and-send-results.bat "https://your-webhook-url" "Development" "Chrome"
+parse-and-send-results.bat "https://your-webhook-url" "Staging" "Chrome"
 
 # Test with sample data
 test-parse-results.bat
@@ -47,7 +47,7 @@ test-teams-webhook.bat "https://your-webhook-url"
 ### **macOS/Linux (Bash)**
 ```bash
 # Parse existing results and send to Teams
-./parse-test-results.sh "https://your-webhook-url" "Development" "Chrome"
+./parse-test-results.sh "https://your-webhook-url" "Staging" "Chrome"
 
 # Test with sample data
 ./test-parse-results.sh
@@ -85,7 +85,7 @@ $ ./test-parse-results.sh
 
 ### **✅ Teams Integration Test (macOS)**
 ```bash
-$ ./parse-test-results.sh "https://your-webhook-url" "Development" "Chrome"
+$ ./parse-test-results.sh "https://your-webhook-url" "Staging" "Chrome"
 📊 Parsing test results and sending to Teams...
 Found XML file: TestReports/TestResults.xml
 📄 Reading XML file: TestReports/TestResults.xml
@@ -116,7 +116,7 @@ Found XML file: TestReports/TestResults.xml
 
 The Teams message includes:
 - **Status**: ✅ All 14 tests passed successfully! (or ❌ 2 tests failed)
-- **Environment**: Development
+- **Environment**: Staging
 - **Total Tests**: 14
 - **Passed**: 12
 - **Failed**: 2
@@ -147,10 +147,10 @@ test-teams-webhook.bat "https://your-webhook-url"
 ### **3. Parse Real Results**
 ```bash
 # macOS/Linux
-./parse-test-results.sh "https://your-webhook-url" "Development" "Chrome"
+./parse-test-results.sh "https://your-webhook-url" "Staging" "Chrome"
 
 # Windows
-parse-and-send-results.bat "https://your-webhook-url" "Development" "Chrome"
+parse-and-send-results.bat "https://your-webhook-url" "Staging" "Chrome"
 ```
 
 ## 🔍 **Troubleshooting**

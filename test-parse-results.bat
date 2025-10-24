@@ -79,13 +79,13 @@ echo.
 
 REM Test parsing without sending to Teams
 echo 🧪 Testing XML parsing (without sending to Teams)...
-powershell -ExecutionPolicy Bypass -File "parse-test-results.ps1" -OutputDir "TestReports" -Environment "Development" -Browser "Chrome"
+powershell -ExecutionPolicy Bypass -File "parse-test-results.ps1" -OutputDir "TestReports" -Environment "Staging" -Browser "Chrome"
 
 if %ERRORLEVEL% equ 0 (
     echo ✅ XML parsing test successful!
     echo.
     echo 💡 To send to Teams, use:
-    echo    parse-and-send-results.bat "your-webhook-url" "Development" "Chrome"
+    echo    parse-and-send-results.bat "your-webhook-url" "Staging" "Chrome"
 ) else (
     echo ❌ XML parsing test failed
     exit /b 1

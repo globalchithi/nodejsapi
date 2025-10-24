@@ -11,7 +11,7 @@ This is your main environment configuration file. It contains all the settings f
 A template file showing all available configuration options with examples.
 
 ### `.env.local` - Local Overrides (Optional)
-Create this file to override settings for your local development environment without affecting the main `.env` file.
+Create this file to override settings for your local Staging environment without affecting the main `.env` file.
 
 ## 🔧 Configuration Options
 
@@ -27,8 +27,8 @@ SEND_TEAMS_NOTIFICATION=true
 ### Test Environment
 ```bash
 # Environment name (appears in reports and Teams notifications)
-ENVIRONMENT=Development
-# Options: Development, Staging, Production, Testing
+ENVIRONMENT=Staging
+# Options: Staging, Staging, Production, Testing
 
 # Browser information (for reporting purposes)
 BROWSER=Chrome
@@ -118,7 +118,7 @@ Settings are loaded in this order (later overrides earlier):
 - Test your webhook URL with a simple curl command first
 - Use different webhook URLs for different environments
 
-### Local Development
+### Local Staging
 - Create `.env.local` for your personal settings
 - Add `.env.local` to `.gitignore` to keep it private
 - Use `.env` for team-shared settings
@@ -147,9 +147,9 @@ Settings are loaded in this order (later overrides earlier):
 
 ## 📋 Example Configurations
 
-### Development Environment
+### Staging Environment
 ```bash
-ENVIRONMENT=Development
+ENVIRONMENT=Staging
 BROWSER=N/A
 SEND_TEAMS_NOTIFICATION=false
 OPEN_REPORTS=true

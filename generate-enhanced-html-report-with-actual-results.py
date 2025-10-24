@@ -56,13 +56,15 @@ def parse_trx_file(trx_file):
             except:
                 duration_ms = 0
             
-            # Count results
+            # Count results (exclude skipped tests)
             if outcome == 'Passed':
                 passed_tests += 1
             elif outcome == 'Failed':
                 failed_tests += 1
             elif outcome == 'Skipped':
                 skipped_tests += 1
+                # Skip adding to test_results - exclude from report
+                continue
             
             # Extract actual result and failure reason for failed tests
             actual_result = ""
@@ -122,19 +124,72 @@ def parse_trx_file(trx_file):
             if test_def is not None:
                 # Try to extract description from test method name or comments
                 method_name = test_def.get('name', '')
+                
+                # Generate more accurate expected results based on test name patterns
                 if 'ShouldValidate' in method_name:
-                    test_type = "Unit Test"
-                    expected_result = "Validation passed"
+                    if 'RequiredHeaders' in method_name:
+                        expected_result = "All required headers validated successfully"
+                    elif 'EndpointStructure' in method_name:
+                        expected_result = "Endpoint structure and format validated"
+                    elif 'DateFormats' in method_name:
+                        expected_result = "Date parameter formats validated"
+                    elif 'VersionFormats' in method_name:
+                        expected_result = "Version parameter formats validated"
+                    elif 'ClinicIdFormats' in method_name:
+                        expected_result = "Clinic ID parameter formats validated"
+                    elif 'QueryParameters' in method_name:
+                        expected_result = "Query parameters validated successfully"
+                    elif 'CurlCommandStructure' in method_name:
+                        expected_result = "Curl command structure validated"
+                    elif 'AuthenticationHeaders' in method_name:
+                        expected_result = "Authentication headers handled correctly"
+                    else:
+                        expected_result = "Validation passed successfully"
                 elif 'ShouldReturn' in method_name:
-                    test_type = "Integration Test"
-                    expected_result = "200 OK with data returned"
+                    if 'InventoryProducts' in method_name:
+                        expected_result = "200 OK with inventory products data"
+                    elif 'LotNumbersData' in method_name:
+                        expected_result = "200 OK with lot numbers data"
+                    elif 'LotInventoryData' in method_name:
+                        expected_result = "200 OK with lot inventory data"
+                    elif 'ClinicData' in method_name:
+                        expected_result = "200 OK with clinic data"
+                    elif 'InsuranceData' in method_name:
+                        expected_result = "200 OK with insurance data"
+                    elif 'ProvidersData' in method_name:
+                        expected_result = "200 OK with providers data"
+                    elif 'ShotAdministratorsData' in method_name:
+                        expected_result = "200 OK with shot administrators data"
+                    elif 'UsersPartnerLevelData' in method_name:
+                        expected_result = "200 OK with users partner level data"
+                    elif 'LocationData' in method_name:
+                        expected_result = "200 OK with location data"
+                    elif 'CheckData' in method_name:
+                        expected_result = "200 OK with check data response"
+                    elif 'AppointmentData' in method_name:
+                        expected_result = "200 OK with appointment data"
+                    elif 'AppointmentId' in method_name:
+                        expected_result = "200 OK with appointment ID returned"
+                    else:
+                        expected_result = "200 OK with data returned"
                 elif 'ShouldHandle' in method_name:
-                    test_type = "Integration Test"
-                    expected_result = "Proper handling of scenario"
+                    if 'UniquePatientNames' in method_name:
+                        expected_result = "200 OK with unique patient appointment created"
+                    elif 'InvalidAppointmentId' in method_name:
+                        expected_result = "400 Bad Request or appropriate error for invalid appointment ID"
+                    else:
+                        expected_result = "Proper handling of scenario"
+                elif 'ShouldDemonstrate' in method_name:
+                    if 'ResponseLogging' in method_name:
+                        expected_result = "Response logging demonstrated successfully"
+                    else:
+                        expected_result = "Demonstration completed successfully"
+                else:
+                    expected_result = "Test execution completed successfully"
                 
                 # Extract endpoint from test name patterns
                 if 'Inventory' in class_name:
-                    endpoint = "GET /api/inventory/..."
+                    endpoint = "GET /api/inventory"
                 elif 'Appointment' in class_name:
                     if 'Create' in method_name:
                         endpoint = "POST /api/patients/appointment"
@@ -145,11 +200,11 @@ def parse_trx_file(trx_file):
                 elif 'Clinic' in class_name:
                     endpoint = "GET /api/patients/clinic"
                 elif 'Insurance' in class_name:
-                    endpoint = "GET /api/patients/insurance/..."
+                    endpoint = "GET /api/patients/insurance"
                 elif 'Staffer' in class_name:
-                    endpoint = "GET /api/patients/staffer/..."
+                    endpoint = "GET /api/patients/staffer"
                 elif 'Setup' in class_name:
-                    endpoint = "GET /api/setup/..."
+                    endpoint = "GET /api/setup"
             
             test_results.append({
                 'name': display_name,
@@ -167,8 +222,9 @@ def parse_trx_file(trx_file):
                 'failure_reason': failure_reason
             })
         
-        # Calculate success rate
-        success_rate = round((passed_tests / total_tests) * 100, 1) if total_tests > 0 else 0
+        # Calculate success rate (excluding skipped tests from denominator)
+        executed_tests = passed_tests + failed_tests
+        success_rate = round((passed_tests / executed_tests) * 100, 1) if executed_tests > 0 else 0
         
         return {
             'total_tests': total_tests,
@@ -207,7 +263,6 @@ def generate_html_report(data, output_path):
         .stat-card .stat-label {{ color: #666; }}
         .passed .stat-number {{ color: #28a745; }}
         .failed .stat-number {{ color: #dc3545; }}
-        .skipped .stat-number {{ color: #ffc107; }}
         .total .stat-number {{ color: #007bff; }}
         .success-rate .stat-number {{ color: #6f42c1; }}
         .test-table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
@@ -216,7 +271,6 @@ def generate_html_report(data, output_path):
         .test-table tbody tr:hover {{ background-color: #f5f5f5; }}
         .status-passed {{ color: #28a745; font-weight: bold; }}
         .status-failed {{ color: #dc3545; font-weight: bold; background-color: #f8d7da; padding: 5px; border-radius: 3px; }}
-        .status-skipped {{ color: #ffc107; font-weight: bold; }}
         .failed-test-row {{ background-color: #f8d7da; }}
         .actual-result {{ color: #dc3545; font-weight: bold; margin-top: 5px; }}
         .failure-reason {{ color: #dc3545; font-style: italic; margin-top: 3px; font-size: 0.9em; }}
@@ -243,10 +297,6 @@ def generate_html_report(data, output_path):
                 <div class="stat-number">{data['failed_tests']}</div>
                 <div class="stat-label">❌ Failed</div>
             </div>
-            <div class="stat-card skipped">
-                <div class="stat-number">{data['skipped_tests']}</div>
-                <div class="stat-label">⏭️ Skipped</div>
-            </div>
             <div class="stat-card total">
                 <div class="stat-number">{data['total_tests']}</div>
                 <div class="stat-label">📊 Total</div>
@@ -257,7 +307,6 @@ def generate_html_report(data, output_path):
             </div>
         </div>
         
-        <h2>📋 Test Results</h2>
         <table class="test-table">
             <thead>
                 <tr>
@@ -276,11 +325,10 @@ def generate_html_report(data, output_path):
         
         # Add test information if available
         test_info_html = ""
-        if test.get('description') or test.get('endpoint') or test.get('test_type') or test.get('expected_result'):
+        if test.get('description') or test.get('endpoint') or test.get('expected_result'):
             test_info_html = f"""
                 <div class="test-info">
                     {f"<div><strong>📋 Description:</strong> {test['description']}</div>" if test.get('description') else ""}
-                    {f"<div><strong>🎯 Test Type:</strong> {test['test_type']}</div>" if test.get('test_type') else ""}
                     {f"<div><strong>🔗 Endpoint:</strong> {test['endpoint']}</div>" if test.get('endpoint') else ""}
                     {f"<div><strong>📊 Expected Result:</strong> {test['expected_result']}</div>" if test.get('expected_result') else ""}
                 </div>"""

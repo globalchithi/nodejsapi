@@ -83,7 +83,7 @@ python3 run-all-tests.py --teams --environment "Staging" --browser "Firefox"
 - ✅ **Test statistics** - Total, Passed, Failed, Skipped
 - ✅ **Success rate** - Percentage calculation
 - ✅ **Duration** - Human-readable time format
-- ✅ **Environment info** - Development, Staging, Production
+- ✅ **Environment info** - Staging, Staging, Production
 - ✅ **Browser info** - Chrome, Firefox, Safari, etc.
 - ✅ **Timestamps** - When tests were executed
 
@@ -102,7 +102,7 @@ python3 run-all-tests.py --teams --environment "Staging" --browser "Firefox"
 API Test Results
 ✅ All 14 tests passed successfully!
 
-Environment: Development
+Environment: Staging
 Total Tests: 14
 Passed: 12
 Failed: 2
@@ -151,7 +151,7 @@ python3 send-teams-notification.py --webhook "YOUR_WEBHOOK_URL"
 ### **Command Line Arguments:**
 - `--xml` - XML file path (default: TestReports/TestResults.xml)
 - `--webhook` - Microsoft Teams webhook URL
-- `--environment` - Environment name (default: Development)
+- `--environment` - Environment name (default: Staging)
 - `--browser` - Browser information (default: N/A)
 - `--test` - Send test notification
 

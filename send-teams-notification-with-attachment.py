@@ -89,7 +89,7 @@ def get_file_mime_type(file_path):
         # Default to HTML if we can't determine
         return 'text/html'
 
-def create_teams_payload_with_attachment(test_data, environment="Development", browser="N/A", html_file_path=None):
+def create_teams_payload_with_attachment(test_data, environment="Staging", browser="N/A", html_file_path=None):
     """Create Microsoft Teams Adaptive Card payload with HTML attachment"""
     timestamp = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
     
@@ -474,7 +474,7 @@ def main():
     parser.add_argument('--html', help='HTML report file path (auto-detected if not specified)')
     parser.add_argument('--output', default='TestReports', help='Output directory for HTML reports')
     parser.add_argument('--webhook', help='Microsoft Teams webhook URL')
-    parser.add_argument('--environment', default='Development', help='Environment name')
+    parser.add_argument('--environment', default='Staging', help='Environment name')
     parser.add_argument('--browser', default='N/A', help='Browser information')
     parser.add_argument('--test', action='store_true', help='Send test notification')
     parser.add_argument('--verbose', action='store_true', help='Verbose output')

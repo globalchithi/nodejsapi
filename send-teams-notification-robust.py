@@ -353,7 +353,7 @@ def format_duration(seconds):
         minutes = int((seconds % 3600) // 60)
         return f"{hours}h {minutes}m"
 
-def create_teams_payload(test_data, environment="Development", browser="N/A"):
+def create_teams_payload(test_data, environment="Staging", browser="N/A"):
     """Create Microsoft Teams Adaptive Card payload"""
     timestamp = datetime.now().strftime("%m/%d/%Y, %I:%M:%S %p")
     
@@ -442,7 +442,7 @@ def main():
     parser = argparse.ArgumentParser(description='Send test results to Microsoft Teams (Robust Version)')
     parser.add_argument('--xml', default='TestReports/TestResults.xml', help='XML file path')
     parser.add_argument('--webhook', help='Microsoft Teams webhook URL')
-    parser.add_argument('--environment', default='Development', help='Environment name')
+    parser.add_argument('--environment', default='Staging', help='Environment name')
     parser.add_argument('--browser', default='N/A', help='Browser information')
     parser.add_argument('--test', action='store_true', help='Send test notification')
     parser.add_argument('--verbose', action='store_true', help='Verbose output')

@@ -6,7 +6,7 @@ set -e
 
 # Default values
 WEBHOOK_URL="${1:-}"
-ENVIRONMENT="${2:-Development}"
+ENVIRONMENT="${2:-Staging}"
 BROWSER="${3:-N/A}"
 OUTPUT_DIR="${4:-TestReports}"
 
@@ -180,7 +180,7 @@ EOF
     fi
 else
     echo "ℹ️  No Teams webhook URL provided - results not sent to Teams"
-    echo "💡 Use: ./parse-test-results.sh \"your-webhook-url\" \"Development\" \"Chrome\""
+    echo "💡 Use: ./parse-test-results.sh \"your-webhook-url\" \"Staging\" \"Chrome\""
 fi
 
 echo "🎉 Test results parsing completed!"

@@ -146,7 +146,7 @@ python3 run-all-tests.py --list-categories
 - ✅ **Header validation** - Checks required headers
 - ✅ **Endpoint validation** - Validates URL structure
 
-### **For Development:**
+### **For Staging:**
 - ✅ **Automated testing** - No manual test data creation
 - ✅ **Unique data** - Each test run uses unique data
 - ✅ **Comprehensive coverage** - Tests all aspects of appointment creation
@@ -192,7 +192,7 @@ python3 run-all-tests.py --filter "CreateAppointment_ShouldHandleUniquePatientNa
 export API_BASE_URL="https://api.vaxcare.com"
 
 # Set test environment
-export TEST_ENVIRONMENT="Development"
+export TEST_ENVIRONMENT="Staging"
 ```
 
 ### **Test Data Customization:**

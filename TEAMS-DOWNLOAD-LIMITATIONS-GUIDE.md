@@ -68,7 +68,7 @@ python3 send-teams-notification-with-download-link.py --xml TestReports/TestResu
 API Test Results
 ✅ All 14 tests passed successfully!
 
-Environment: Development
+Environment: Staging
 Total Tests: 14
 Passed: 12
 Failed: 2
@@ -115,7 +115,7 @@ Timestamp: 10/23/2025, 11:30:00 AM
 
 ## 🎯 **Recommended Workflow:**
 
-### **For Local Development:**
+### **For Local Staging:**
 ```bash
 # Use file path links (works for local team)
 python3 send-teams-notification-with-download-link.py --xml TestReports/TestResults.xml

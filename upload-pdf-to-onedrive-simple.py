@@ -93,7 +93,7 @@ def create_upload_instructions(pdf_file):
     
     return instructions
 
-def send_teams_notification_with_instructions(pdf_file, environment="Development"):
+def send_teams_notification_with_instructions(pdf_file, environment="Staging"):
     """Send Teams notification with upload instructions"""
     try:
         # Create instructions
@@ -164,7 +164,7 @@ def main():
     """Main function"""
     parser = argparse.ArgumentParser(description='Upload PDF to OneDrive (Simple Method)')
     parser.add_argument('--pdf', help='PDF file path (if not provided, will find latest PDF)')
-    parser.add_argument('--environment', default='Development', help='Environment name')
+    parser.add_argument('--environment', default='Staging', help='Environment name')
     parser.add_argument('--teams', action='store_true', help='Send Teams notification with instructions')
     parser.add_argument('--open', action='store_true', help='Open OneDrive in browser')
     

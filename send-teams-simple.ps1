@@ -1,6 +1,6 @@
 param(
     [string]$WebhookUrl = "",
-    [string]$Environment = "Development",
+    [string]$Environment = "Staging",
     [int]$TotalTests = 0,
     [int]$PassedTests = 0,
     [int]$FailedTests = 0,
