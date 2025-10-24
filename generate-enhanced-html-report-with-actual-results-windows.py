@@ -261,7 +261,7 @@ def generate_html_report(data, output_path):
     <style>
         body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }}
         .container {{ max-width: 1400px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-        .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }}
+        .header {{ background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #EC4899 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }}
         .header h1 {{ margin: 0; font-size: 2.5em; }}
         .header p {{ margin: 10px 0 0 0; opacity: 0.9; }}
         .content {{ padding: 30px; }}
@@ -293,7 +293,7 @@ def generate_html_report(data, output_path):
 <body>
     <div class="container">
         <div class="header">
-            <h1>VaxCare API Test Report</h1>
+            <h1>💉 VaxCare API Test Report</h1>
             <p>Generated: {timestamp}</p>
         </div>
         
