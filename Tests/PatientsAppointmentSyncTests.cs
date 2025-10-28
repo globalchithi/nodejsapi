@@ -19,10 +19,12 @@ public class PatientsAppointmentSyncTests : IDisposable
     public PatientsAppointmentSyncTests()
     {
         // Setup configuration
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Staging";
+        
         _configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddJsonFile("appsettings.Staging.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables()
             .Build();
 
@@ -141,13 +143,14 @@ public class PatientsAppointmentSyncTests : IDisposable
     public void GetPatientsAppointmentSync_ShouldValidateEndpointStructure()
     {
         // Arrange
-        var baseUrl = "https://vhapistg.vaxcare.com";
+        var baseUrl = _configuration["ApiConfiguration:BaseUrl"];
         var endpoint = "/api/patients/appointment/sync";
         var queryParams = "?clinicId=89534&date=2025-10-22&version=2.0";
         var fullUrl = $"{baseUrl}{endpoint}{queryParams}";
         
         // Act & Assert
-        fullUrl.Should().Be("https://vhapistg.vaxcare.com/api/patients/appointment/sync?clinicId=89534&date=2025-10-22&version=2.0");
+        var expectedBaseUrl = _configuration["ApiConfiguration:BaseUrl"];
+        fullUrl.Should().Be($"{expectedBaseUrl}/api/patients/appointment/sync?clinicId=89534&date=2025-10-22&version=2.0");
         
         // Validate endpoint structure
         endpoint.Should().StartWith("/api/");
@@ -301,7 +304,8 @@ public class PatientsAppointmentSyncTests : IDisposable
         Console.WriteLine("=== RESPONSE LOGGING DEMONSTRATION ===");
         Console.WriteLine("When the API is accessible, you'll see logs like:");
         Console.WriteLine();
-        Console.WriteLine("Making GET request to: https://vhapistg.vaxcare.com/api/patients/appointment/sync?clinicId=89534&date=2025-10-22&version=2.0");
+        var baseUrl = _configuration["ApiConfiguration:BaseUrl"];
+        Console.WriteLine($"Making GET request to: {baseUrl}/api/patients/appointment/sync?clinicId=89534&date=2025-10-22&version=2.0");
         Console.WriteLine("Request completed in: 245ms");
         Console.WriteLine("Response Status: 200 OK");
         Console.WriteLine("Response Reason: OK");

@@ -27,10 +27,12 @@ namespace VaxCareApiTests.Tests
         public PatientsAppointmentCreateTests()
         {
             // Setup configuration
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Staging";
+            
             _configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile("appsettings.Staging.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables()
                 .Build();
 
@@ -209,8 +211,8 @@ namespace VaxCareApiTests.Tests
             {
                 // Arrange
                 var endpoint = _endpoint;
-                var baseUrl = _httpClientService.GetHeaders()["Host"] ?? "vhapistg.vaxcare.com";
-                var fullUrl = $"https://{baseUrl}{endpoint}";
+                var baseUrl = _configuration["ApiConfiguration:BaseUrl"];
+                var fullUrl = $"{baseUrl}{endpoint}";
 
                 // Act & Assert
                 var uri = new Uri(fullUrl);

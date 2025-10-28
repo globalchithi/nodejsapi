@@ -12,10 +12,19 @@ public class Program
     public static async Task Main(string[] args)
     {
         // Setup configuration
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Staging";
+        
+        // Find the project root directory (where appsettings files are located)
+        var projectRoot = Directory.GetCurrentDirectory();
+        while (!File.Exists(Path.Combine(projectRoot, "VaxCareApiTests.csproj")) && projectRoot != Path.GetPathRoot(projectRoot))
+        {
+            projectRoot = Directory.GetParent(projectRoot)?.FullName ?? projectRoot;
+        }
+        
         var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
+            .SetBasePath(projectRoot)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddJsonFile("appsettings.Staging.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables()
             .Build();
 

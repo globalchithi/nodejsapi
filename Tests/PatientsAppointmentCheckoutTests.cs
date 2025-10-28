@@ -60,10 +60,12 @@ namespace VaxCareApiTests.Tests
             _output = output;
             
             // Setup configuration
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Staging";
+            
             _configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile("appsettings.Staging.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables()
                 .Build();
 
@@ -323,7 +325,8 @@ namespace VaxCareApiTests.Tests
 
             // Act & Assert
             Console.WriteLine($"✅ Endpoint structure validation passed");
-            Console.WriteLine($"✅ Full URL: https://vhapistg.vaxcare.com{_checkoutEndpoint}");
+            var baseUrl = _configuration["ApiConfiguration:BaseUrl"];
+            Console.WriteLine($"✅ Full URL: {baseUrl}{_checkoutEndpoint}");
             Console.WriteLine($"✅ Endpoint: {_checkoutEndpoint}");
             Console.WriteLine($"✅ Appointment ID: {appointmentId}");
         }

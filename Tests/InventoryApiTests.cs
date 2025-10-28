@@ -20,12 +20,26 @@ public class InventoryApiTests : IDisposable
     public InventoryApiTests()
     {
         // Setup configuration
-        _configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddJsonFile("appsettings.Staging.json", optional: true, reloadOnChange: true)
-            .AddEnvironmentVariables()
-            .Build();
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Staging";
+        
+        // Find the project root directory (where appsettings files are located)
+        // Look for the .csproj file to identify the true project root
+        var projectRoot = Directory.GetCurrentDirectory();
+        while (!File.Exists(Path.Combine(projectRoot, "VaxCareApiTests.csproj")) && projectRoot != Path.GetPathRoot(projectRoot))
+        {
+            projectRoot = Directory.GetParent(projectRoot)?.FullName ?? projectRoot;
+        }
+        
+        var configBuilder = new ConfigurationBuilder()
+            .SetBasePath(projectRoot)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+            
+        // Add environment-specific configuration file
+        var envConfigFile = $"appsettings.{environment}.json";
+        configBuilder.AddJsonFile(envConfigFile, optional: true, reloadOnChange: true);
+        configBuilder.AddEnvironmentVariables();
+        
+        _configuration = configBuilder.Build();
 
         // Setup services
         var services = new ServiceCollection();
@@ -122,7 +136,9 @@ public class InventoryApiTests : IDisposable
         decodedIdentifier.DeviceSerialNumber.Should().Be("NO_PERMISSION");
         decodedIdentifier.UserId.Should().Be(100186894);
         decodedIdentifier.UserName.Should().Be("qarobot@vaxcare.com");
-        decodedIdentifier.VersionName.Should().Be("3.0.0-0-STG");
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Staging";
+        var expectedVersion = environment == "QA" ? "3.0.0-0-QUA" : "3.0.0-0-STG";
+        decodedIdentifier.VersionName.Should().Be(expectedVersion);
         decodedIdentifier.ModelType.Should().Be("MobileHub");
         decodedIdentifier.AssetTag.Should().Be(-1);
 
@@ -170,7 +186,8 @@ public class InventoryApiTests : IDisposable
     public void GetInventoryProducts_ShouldValidateCurlCommandStructure()
     {
         // Arrange
-        var expectedUrl = "https://vhapistg.vaxcare.com/api/inventory/product/v2";
+        var baseUrl = _configuration["ApiConfiguration:BaseUrl"];
+        var expectedUrl = $"{baseUrl}{_endpoint}";
         var headers = _httpClientService.GetHeaders();
         var actualUrl = $"https://{headers["Host"]}{_endpoint}";
 
@@ -202,7 +219,7 @@ public class InventoryApiTests : IDisposable
         headers["MobileData"].Should().Be("false");
         headers["UserSessionId"].Should().Be("04abd063-1b1f-490d-be30-765d1801891b");
         headers["MessageSource"].Should().Be("VaxMobile");
-        headers["Host"].Should().Be("vhapistg.vaxcare.com");
+        headers["Host"].Should().Be(_configuration["Headers:Host"]);
         headers["Connection"].Should().Be("Keep-Alive");
         headers["User-Agent"].Should().Be("okhttp/4.12.0");
 

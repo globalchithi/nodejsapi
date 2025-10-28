@@ -18,56 +18,86 @@ A comprehensive API testing suite for the VaxCare inventory API, converted from 
 - ✅ **XML parsing** - Automatic extraction of test statistics from xUnit/TRX logs
 - ✅ **Environment configuration** - .env file support for Teams webhooks
 - ✅ **Cross-platform scripts** - Windows (PowerShell/Batch) and macOS/Linux (Bash)
+- ✅ **Clean project organization** - Organized structure with separated concerns
+- ✅ **Comprehensive documentation** - All guides organized in docs/ folder
+- ✅ **Maintainable codebase** - Related files grouped together for easy maintenance
 
 ## 📁 Project Structure
 
 ```
 VaxCareApiTests/
-├── VaxCareApiTests.csproj   # C# project file with dependencies
-├── Program.cs               # Main application entry point
-├── appsettings.json        # Configuration file
-├── appsettings.Staging.json # Staging configuration
-├── Models/
-│   ├── ApiConfiguration.cs  # Configuration models
-│   └── VaxHubIdentifier.cs  # API response models
-├── Services/
-│   ├── HttpClientService.cs # HTTP client service
-│   └── TestUtilities.cs     # Test utility functions
-├── Tests/
-│   └── InventoryApiTests.cs # Main API test suite
-├── TestRunner/             # Core test running scripts
-│   ├── run-all-tests.py     # Main test runner
+├── VaxCareApiTests.csproj    # C# project file with dependencies
+├── Program.cs                 # Main application entry point
+├── appsettings.json          # Configuration file
+├── appsettings.Development.json # Staging configuration
+├── TestInfo.json             # Test configuration
+├── run-all-tests.py          # Main test runner (wrapper)
+├── open-html-report.py       # Report opener (wrapper)
+├── Models/                   # C# data models
+│   ├── ApiConfiguration.cs   # Configuration models
+│   ├── CheckoutModels.cs     # Checkout-related models
+│   ├── TestPatients.cs       # Test patient models
+│   └── VaxHubIdentifier.cs   # API response models
+├── Services/                 # C# services
+│   ├── BaseTestClass.cs      # Base test class
+│   ├── EnhancedHtmlReportGenerator.cs # HTML report generator
+│   ├── HttpClientService.cs  # HTTP client service
+│   ├── TestExecutionWrapper.cs # Test execution wrapper
+│   ├── TestReportService.cs  # Test report service
+│   ├── TestResultCollector.cs # Test result collector
+│   └── TestUtilities.cs      # Test utility functions
+├── Tests/                    # C# test files
+│   ├── InventoryApiTests.cs  # Inventory API tests
+│   ├── PatientsAppointmentCreateTests.cs # Appointment creation tests
+│   ├── PatientsAppointmentCheckoutTests.cs # Appointment checkout tests
+│   └── [11 other test files] # Additional test suites
+├── TestRunner/               # Core test running scripts
+│   ├── run-all-tests.py      # Main test runner
 │   ├── generate-enhanced-html-report-with-actual-results.py
 │   ├── generate-enhanced-html-report-with-actual-results-windows.py
 │   ├── generate-enhanced-html-report-robust.py
 │   ├── send-teams-notification.py
 │   ├── open-html-report.py
-│   └── README.md           # TestRunner documentation
-├── TestReports/            # Generated test reports (auto-created)
-├── run-all-tests.py        # Wrapper script (calls TestRunner/)
-├── open-html-report.py     # Wrapper script (calls TestRunner/)
-├── .env                   # Environment configuration
-├── .env.example           # Environment template
-├── README.md              # This documentation
-├── README-TEST-PARSING.md # Test parsing documentation
-├── TEAMS-INTEGRATION-GUIDE.md # Teams integration guide
-└── Reporting Scripts/
-    ├── Windows/
-    │   ├── run-tests-with-reporting.bat      # Main test runner
-    │   ├── parse-test-results.ps1            # PowerShell parser
-    │   ├── parse-and-send-results.bat        # Batch wrapper
-    │   ├── test-parse-results.bat            # Test with sample data
-    │   ├── test-teams-webhook.bat            # Test webhook URL
-    │   ├── send-teams-simple.ps1             # Simple Teams sender
-    │   ├── send-teams-curl.bat               # Direct curl approach
-    │   ├── generate-enhanced-report-minimal.ps1 # HTML report generator
-    │   └── load-env-batch.bat                # Environment loader
-    └── macOS-Linux/
-        ├── run-tests-with-reporting.sh       # Main test runner
-        ├── parse-test-results.sh             # Bash parser
-        ├── test-parse-results.sh             # Test with sample data
-        └── generate-enhanced-report.sh       # HTML report generator
+│   └── README.md             # TestRunner documentation
+├── TestReports/              # Generated test reports (auto-created)
+├── TestResults/              # Raw test results (.trx, .xml)
+├── docs/                     # All documentation
+│   ├── README.md             # This documentation
+│   ├── PROJECT-STRUCTURE.md  # Project structure guide
+│   ├── CLEANUP-SUMMARY.md    # Cleanup summary
+│   ├── TEAMS-INTEGRATION-GUIDE.md # Teams integration guide
+│   ├── TEST-RUNNER-GUIDE.md  # Test runner guide
+│   └── [25+ other guides]    # Additional documentation
+└── temp_unused_files/        # Deprecated/unused files (73 files)
+    ├── MOVED-FILES-SUMMARY.md # Summary of moved files
+    └── [72 deprecated files]  # Old scripts and utilities
 ```
+
+## 🎯 **Project Organization Benefits**
+
+### **Clean Root Directory**
+- **Only 8 essential files** visible in root directory
+- **Easy to find main entry points** (run-all-tests.py, open-html-report.py)
+- **Professional project appearance** with clear structure
+- **Reduced confusion** from cluttered files
+
+### **Organized Documentation**
+- **All guides in `docs/` folder** for easy access
+- **30+ documentation files** properly organized
+- **Clear separation** between code and documentation
+- **Easy to find specific information**
+
+### **Separated Concerns**
+- **Test running logic in `TestRunner/`** - All Python scripts together
+- **Documentation in `docs/`** - All guides and documentation
+- **Deprecated files in `temp_unused_files/`** - Old scripts preserved but hidden
+- **Generated files in `TestReports/`** - All reports in one place
+
+### **Maintainability**
+- **Related files grouped together** for easy updates
+- **Clear separation of responsibilities** between different areas
+- **Easy to add new features** without cluttering root directory
+- **Better code organization** for team collaboration
 
 ## 🛠️ Setup & Installation
 
@@ -132,32 +162,30 @@ dotnet run
 The project includes comprehensive automated test reporting with Microsoft Teams integration:
 
 #### **Cross-Platform Test Reporting**
-- **Windows**: PowerShell scripts with batch wrappers
-- **macOS/Linux**: Bash scripts for Unix-like systems
+- **Python-based**: Unified Python scripts for all platforms
 - **Automatic XML parsing** from xUnit and TRX loggers
 - **Real-time Teams notifications** with Adaptive Cards
+- **Enhanced HTML reports** with actual results and failure reasons
 
 #### **Quick Start - Automated Reporting**
 
-**Windows:**
-```cmd
-# Run tests with automatic Teams notification
-run-tests-with-reporting.bat
-
-# Parse existing results and send to Teams
-parse-and-send-results.bat "https://your-webhook-url" "Staging" "Chrome"
-
-# Test with sample data
-test-parse-results.bat
-```
-
-**macOS/Linux:**
+**All Platforms:**
 ```bash
-# Parse existing results and send to Teams
-./parse-test-results.sh "https://your-webhook-url" "Staging" "Chrome"
+# Run all tests with automatic HTML report generation
+python3 run-all-tests.py
 
-# Test with sample data
-./test-parse-results.sh
+# Run tests with Teams notification
+python3 run-all-tests.py --teams
+
+# Run specific test categories
+python3 run-all-tests.py --category inventory
+python3 run-all-tests.py --category patients
+
+# Open HTML report in browser
+python3 open-html-report.py
+
+# List available reports
+python3 open-html-report.py --list
 ```
 
 #### **Teams Notification Features**
@@ -284,7 +312,7 @@ The test suite includes five comprehensive test cases:
 ```json
 {
   "ApiConfiguration": {
-    "BaseUrl": "https://vhapistg.vaxcare.com",
+    "BaseUrl": "https://vhapistg.vaxcare.com",  // Configured per environment
     "Timeout": 30000,
     "InsecureHttps": true
   },
@@ -295,7 +323,7 @@ The test suite includes five comprehensive test cases:
     "MobileData": "false",
     "UserSessionId": "NO USER LOGGED IN",
     "MessageSource": "VaxMobile",
-    "Host": "vhapistg.vaxcare.com",
+    "Host": "vhapistg.vaxcare.com",  // Configured per environment
     "Connection": "Keep-Alive",
     "User-Agent": "okhttp/4.12.0"
   }
@@ -307,7 +335,7 @@ The test suite includes five comprehensive test cases:
 The tests are based on this curl command:
 
 ```bash
-curl --insecure "https://vhapistg.vaxcare.com/api/inventory/product/v2" \
+curl --insecure "https://vhapistg.vaxcare.com/api/inventory/product/v2" \  # URL configured per environment
 -X GET \
 -H "IsCalledByJob: true" \
 -H "X-VaxHub-Identifier: eyJhbmRyb2lkU2RrIjoyOSwiYW5kcm9pZFZlcnNpb24iOiIxMCIsImFzc2V0VGFnIjotMSwiY2xpbmljSWQiOjg5NTM0LCJkZXZpY2VTZXJpYWxOdW1iZXIiOiJOT19QRVJNSVNTSU9OIiwicGFydG5lcklkIjoxNzg3NjQsInVzZXJJZCI6MCwidXNlck5hbWUiOiAiIiwidmVyc2lvbiI6MTQsInZlcnNpb25OYW1lIjoiMy4wLjAtMC1TVEciLCJtb2RlbFR5cGUiOiJNb2JpbGVIdWIifQ==" \
@@ -315,7 +343,7 @@ curl --insecure "https://vhapistg.vaxcare.com/api/inventory/product/v2" \
 -H "MobileData: false" \
 -H "UserSessionId: NO USER LOGGED IN" \
 -H "MessageSource: VaxMobile" \
--H "Host: vhapistg.vaxcare.com" \
+-H "Host: vhapistg.vaxcare.com" \  # Configured per environment
 -H "Connection: Keep-Alive" \
 -H "User-Agent: okhttp/4.12.0"
 ```
@@ -340,7 +368,7 @@ All headers from the curl command are faithfully reproduced:
 - `MobileData: false`
 - `UserSessionId: NO USER LOGGED IN`
 - `MessageSource: VaxMobile`
-- `Host: vhapistg.vaxcare.com`
+- `Host: vhapistg.vaxcare.com` (configured per environment)
 - `Connection: Keep-Alive`
 - `User-Agent: okhttp/4.12.0`
 
@@ -528,31 +556,30 @@ public async Task ApiPerformanceTest()
 
 ## 🚀 **Quick Reference - Test Reporting & Teams Integration**
 
-### **Windows Commands**
-```cmd
-# Run tests with automatic Teams notification
-run-tests-with-reporting.bat
-
-# Parse existing results and send to Teams
-parse-and-send-results.bat "https://your-webhook-url" "Staging" "Chrome"
-
-# Test with sample data
-test-parse-results.bat
-
-# Test webhook URL
-test-teams-webhook.bat "https://your-webhook-url"
-```
-
-### **macOS/Linux Commands**
+### **All Platforms (Python-based)**
 ```bash
-# Parse existing results and send to Teams
-./parse-test-results.sh "https://your-webhook-url" "Staging" "Chrome"
+# Run all tests with automatic HTML report generation
+python3 run-all-tests.py
 
-# Test with sample data
-./test-parse-results.sh
+# Run tests with Teams notification
+python3 run-all-tests.py --teams
 
-# Test without Teams (just parsing)
-./parse-test-results.sh
+# Run specific test categories
+python3 run-all-tests.py --category inventory
+python3 run-all-tests.py --category patients
+python3 run-all-tests.py --category appointment
+
+# Run with custom filter
+python3 run-all-tests.py --filter "FullyQualifiedName~Inventory"
+
+# Open HTML report in browser
+python3 open-html-report.py
+
+# List available reports
+python3 open-html-report.py --list
+
+# Open specific report
+python3 open-html-report.py --file "EnhancedTestReport_2025-10-24.html"
 ```
 
 ### **Environment Setup**
@@ -571,9 +598,18 @@ BROWSER=Chrome
 - **Teams**: Rich Adaptive Cards with test statistics
 
 ### **Documentation**
-- **`README-TEST-PARSING.md`** - Complete test parsing guide
+All documentation is organized in the `docs/` folder:
+
+- **`README.md`** - This main documentation
+- **`PROJECT-STRUCTURE.md`** - Detailed project structure guide
+- **`CLEANUP-SUMMARY.md`** - Project cleanup summary
 - **`TEAMS-INTEGRATION-GUIDE.md`** - Teams integration documentation
+- **`TEST-RUNNER-GUIDE.md`** - Test runner usage guide
+- **`APPOINTMENT-TESTS-GUIDE.md`** - Appointment testing guide
+- **`ENVIRONMENT-SETUP.md`** - Environment setup guide
+- **`TROUBLESHOOTING-GUIDE.md`** - Troubleshooting guide
 - **`WINDOWS-SETUP.md`** - Windows-specific setup guide
+- **And 20+ other specialized guides**
 
 ## 📄 License
 

@@ -31,6 +31,23 @@ def run_command(command, description):
         safe_print(f"Error: {e.stderr}")
         return False, e.stdout, e.stderr
 
+def run_command_with_env(command, description, env_vars=None):
+    """Run a command with environment variables and return the result"""
+    safe_print(f"🔄 {description}...")
+    try:
+        # Merge with current environment
+        env = os.environ.copy()
+        if env_vars:
+            env.update(env_vars)
+        
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True, env=env)
+        safe_print(f"✅ {description} completed successfully")
+        return True, result.stdout, result.stderr
+    except subprocess.CalledProcessError as e:
+        safe_print(f"❌ {description} failed with exit code {e.returncode}")
+        safe_print(f"Error: {e.stderr}")
+        return False, e.stdout, e.stderr
+
 def check_dotnet():
     """Check if .NET is available"""
     success, stdout, stderr = run_command("dotnet --version", "Checking .NET installation")
@@ -59,6 +76,25 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
     # Create output directory
     os.makedirs(output_dir, exist_ok=True)
     
+    # Set environment variable for tests
+    if args and hasattr(args, 'environment'):
+        environment = args.environment
+        safe_print(f"🌍 Setting test environment to: {environment}")
+        
+        # Set environment variable for the test process
+        if environment == 'QA':
+            os.environ['ASPNETCORE_ENVIRONMENT'] = 'QA'
+            safe_print("📋 Using QA configuration (vhapiqa.vaxcare.com)")
+        elif environment == 'Production':
+            os.environ['ASPNETCORE_ENVIRONMENT'] = 'Production'
+            safe_print("📋 Using Production configuration")
+        else:  # Staging (default)
+            os.environ['ASPNETCORE_ENVIRONMENT'] = 'Staging'
+            safe_print("📋 Using Staging configuration")
+    else:
+        os.environ['ASPNETCORE_ENVIRONMENT'] = 'Staging'
+        safe_print("📋 Using default Staging configuration")
+    
     # Build the project first
     safe_print("🔨 Building project...")
     build_success, _, _ = run_command("dotnet build", "Building project")
@@ -72,13 +108,17 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
     xml_file = os.path.join(output_dir, f"TestResults_{timestamp}.xml")
     
     # Build test command
+    environment = args.environment if args and hasattr(args, 'environment') else 'Staging'
     test_cmd = f"dotnet test --logger \"trx;LogFileName=TestResults_{timestamp}.trx\" --logger \"xunit;LogFileName=TestResults_{timestamp}.xml\" --verbosity normal --results-directory \"{output_dir}\""
     
     if test_filter:
         test_cmd += f" --filter \"{test_filter}\""
     
-    # Run tests
-    success, stdout, stderr = run_command(test_cmd, "Running tests")
+    # Set environment variables for the test process
+    env_vars = {'ASPNETCORE_ENVIRONMENT': environment}
+    
+    # Run tests with environment variables
+    success, stdout, stderr = run_command_with_env(test_cmd, "Running tests", env_vars)
     
     # Always try to generate reports and send notifications, even if some tests failed
     safe_print("📊 Test execution completed!")
@@ -107,7 +147,7 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
     if trx_file_to_use and os.path.exists(trx_file_to_use):
         safe_print("📄 Generating enhanced HTML report with actual results...")
         report_success, _, _ = run_command(
-            f"python3 TestRunner/generate-enhanced-html-report-with-actual-results.py --trx \"{trx_file_to_use}\" --output \"{output_dir}\"",
+            f"python3 TestRunner/generate-enhanced-html-report-with-actual-results.py --trx \"{trx_file_to_use}\" --output \"{output_dir}\" --environment \"{environment}\"",
             "Generating HTML report with actual results"
         )
         
@@ -115,7 +155,7 @@ def run_tests_with_reporting(test_filter=None, output_dir="TestReports", args=No
         if not report_success:
             safe_print("⚠️ Actual results parser failed, trying Windows-compatible actual results parser...")
             report_success, _, _ = run_command(
-                f"python3 TestRunner/generate-enhanced-html-report-with-actual-results-windows.py --trx \"{trx_file_to_use}\" --output \"{output_dir}\"",
+                f"python3 TestRunner/generate-enhanced-html-report-with-actual-results-windows.py --trx \"{trx_file_to_use}\" --output \"{output_dir}\" --environment \"{environment}\"",
                 "Generating HTML report with Windows-compatible actual results parser"
             )
     
@@ -323,7 +363,8 @@ def main():
     parser.add_argument('--list-categories', action='store_true', help='List available test categories')
     parser.add_argument('--teams', action='store_true', help='Send results to Microsoft Teams')
     parser.add_argument('--webhook', help='Microsoft Teams webhook URL')
-    parser.add_argument('--environment', default='Staging', help='Environment name for Teams notification')
+    parser.add_argument('--environment', choices=['Staging', 'QA', 'Production'], default='Staging', 
+                       help='Environment to run tests against (Staging, QA, Production)')
     parser.add_argument('--browser', default='N/A', help='Browser information for Teams notification')
     parser.add_argument('--open-report', action='store_true', default=True, help='Open HTML report in browser after completion (default: True)')
     parser.add_argument('--no-open', action='store_true', help='Do not open HTML report automatically')

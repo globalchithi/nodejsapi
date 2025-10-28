@@ -181,7 +181,7 @@
 ### **📊 Response Logging Example**
 
 ```
-Making GET request to: https://vhapistg.vaxcare.com/api/patients/appointment/sync?clinicId=89534&date=2025-10-22&version=2.0
+Making GET request to: [Environment-specific URL]/api/patients/appointment/sync?clinicId=89534&date=2025-10-22&version=2.0
 Request completed in: 245ms
 Response Status: 200 OK
 Response Reason: OK
@@ -268,7 +268,7 @@ dotnet test --filter "Name~ValidateDate"
 - **Insurance APIs:** 100% ✅ (4/4)
 
 ### **Network Connectivity**
-- **API Endpoint:** `https://vhapistg.vaxcare.com`
+- **API Endpoint:** Environment-specific (configured in appsettings)
 - **Status:** Not accessible (expected for testing)
 - **Error Handling:** Graceful fallback implemented
 - **Logging:** Comprehensive request/response logging
@@ -281,7 +281,7 @@ dotnet test --filter "Name~ValidateDate"
 ```json
 {
   "ApiConfiguration": {
-    "BaseUrl": "https://vhapistg.vaxcare.com",
+    "BaseUrl": "https://vhapistg.vaxcare.com",  // Environment-specific
     "Timeout": 30000,
     "InsecureHttps": true
   },
@@ -292,7 +292,7 @@ dotnet test --filter "Name~ValidateDate"
     "MobileData": "false",
     "UserSessionId": "NO USER LOGGED IN",
     "MessageSource": "VaxMobile",
-    "Host": "vhapistg.vaxcare.com",
+    "Host": "vhapistg.vaxcare.com",  // Environment-specific
     "Connection": "Keep-Alive",
     "User-Agent": "okhttp/4.12.0"
   }

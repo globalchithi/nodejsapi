@@ -20,10 +20,12 @@ public class PatientsClinicTests : IDisposable
     public PatientsClinicTests()
     {
         // Setup configuration
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Staging";
+        
         _configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddJsonFile("appsettings.Staging.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables()
             .Build();
 
@@ -83,7 +85,8 @@ public class PatientsClinicTests : IDisposable
     public void GetPatientsClinic_ShouldValidateEndpointStructure()
     {
         // Arrange
-        var fullUrl = "https://vhapistg.vaxcare.com/api/patients/clinic";
+        var baseUrl = _configuration["ApiConfiguration:BaseUrl"];
+        var fullUrl = $"{baseUrl}/api/patients/clinic";
         var expectedEndpoint = "/api/patients/clinic";
 
         // Act

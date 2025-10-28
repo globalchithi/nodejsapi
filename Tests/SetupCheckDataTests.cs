@@ -20,10 +20,12 @@ public class SetupCheckDataTests : IDisposable
     public SetupCheckDataTests()
     {
         // Setup configuration
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Staging";
+        
         _configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .AddJsonFile("appsettings.Staging.json", optional: true, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
             .AddEnvironmentVariables()
             .Build();
 
@@ -86,7 +88,8 @@ public class SetupCheckDataTests : IDisposable
     public void GetSetupCheckData_ShouldValidateEndpointStructure()
     {
         // Arrange
-        var fullUrl = "https://vhapistg.vaxcare.com/api/setup/checkData?partnerId=178764&clinicId=89534";
+        var baseUrl = _configuration["ApiConfiguration:BaseUrl"];
+        var fullUrl = $"{baseUrl}/api/setup/checkData?partnerId=178764&clinicId=89534";
         var expectedEndpoint = "/api/setup/checkData";
         var expectedQuery = "?partnerId=178764&clinicId=89534";
 

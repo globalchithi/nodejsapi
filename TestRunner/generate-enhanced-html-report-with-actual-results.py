@@ -268,12 +268,52 @@ def parse_trx_file(trx_file):
         executed_tests = passed_tests + failed_tests
         success_rate = round((passed_tests / executed_tests) * 100, 1) if executed_tests > 0 else 0
         
+        # Calculate total runtime from overall test run times
+        total_runtime_seconds = 0
+        try:
+            # Get the overall test run start and finish times from the Times element
+            times_elem = root.find('.//{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}Times')
+            if times_elem is not None:
+                start_attr = times_elem.get('start')
+                finish_attr = times_elem.get('finish')
+                if start_attr and finish_attr:
+                    # Fix datetime format by limiting microseconds precision
+                    start_clean = start_attr[:26] + start_attr[-6:]  # Keep only 6 decimal places
+                    finish_clean = finish_attr[:26] + finish_attr[-6:]  # Keep only 6 decimal places
+                    start_dt = datetime.fromisoformat(start_clean)
+                    finish_dt = datetime.fromisoformat(finish_clean)
+                    total_runtime_seconds = (finish_dt - start_dt).total_seconds()
+        except Exception as e:
+            # Fallback to individual test times if overall times not available
+            if test_results:
+                start_times = []
+                end_times = []
+                for test in test_results:
+                    if test.get('start_time'):
+                        try:
+                            start_dt = datetime.fromisoformat(test['start_time'].replace('Z', '+00:00'))
+                            start_times.append(start_dt)
+                        except:
+                            pass
+                    if test.get('end_time'):
+                        try:
+                            end_dt = datetime.fromisoformat(test['end_time'].replace('Z', '+00:00'))
+                            end_times.append(end_dt)
+                        except:
+                            pass
+                
+                if start_times and end_times:
+                    earliest_start = min(start_times)
+                    latest_end = max(end_times)
+                    total_runtime_seconds = (latest_end - earliest_start).total_seconds()
+        
         return {
             'total_tests': total_tests,
             'passed_tests': passed_tests,
             'failed_tests': failed_tests,
             'skipped_tests': skipped_tests,
             'success_rate': success_rate,
+            'total_runtime_seconds': total_runtime_seconds,
             'test_details': test_results
         }
         
@@ -281,7 +321,7 @@ def parse_trx_file(trx_file):
         print(f"Error parsing TRX file: {e}")
         sys.exit(1)
 
-def generate_html_report(data, output_path):
+def generate_html_report(data, output_path, environment="Staging"):
     """Generate HTML report with actual results and failure reasons"""
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
@@ -321,6 +361,9 @@ def generate_html_report(data, output_path):
         .warning {{ background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; border-radius: 4px; margin: 10px 0; }}
         .test-info {{ margin-top: 10px; padding: 10px; background: #e9ecef; border-radius: 4px; font-size: 0.9em; }}
         .failure-info {{ margin-top: 10px; padding: 10px; background: #f8d7da; border: 1px solid #dc3545; border-radius: 4px; font-size: 0.9em; }}
+        .environment-info {{ margin-top: 10px; padding: 8px 12px; background: #e3f2fd; border: 1px solid #2196f3; border-radius: 4px; display: inline-block; }}
+        .env-label {{ font-weight: bold; color: #1976d2; }}
+        .env-value {{ color: #0d47a1; font-family: monospace; }}
     </style>
 </head>
 <body>
@@ -328,6 +371,10 @@ def generate_html_report(data, output_path):
         <div class="header">
             <h1>💉 VaxCare API Test Report</h1>
             <p>Generated: {timestamp}</p>
+            <div class="environment-info">
+                <span class="env-label">Environment:</span>
+                <span class="env-value">{environment}</span>
+            </div>
         </div>
         
         <div class="stats">
@@ -346,6 +393,10 @@ def generate_html_report(data, output_path):
             <div class="stat-card success-rate">
                 <div class="stat-number">{data['success_rate']}%</div>
                 <div class="stat-label">🎯 Success Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{data['total_runtime_seconds']:.1f}s</div>
+                <div class="stat-label">⏱️ Total Runtime</div>
             </div>
         </div>
         
@@ -429,6 +480,7 @@ def main():
     parser = argparse.ArgumentParser(description='Generate enhanced HTML test report with actual results')
     parser.add_argument('--trx', default='TestResults/TestResults_2025-10-24_09-56-03.trx', help='TRX file path')
     parser.add_argument('--output', default='TestReports', help='Output directory')
+    parser.add_argument('--environment', default='Staging', help='Test environment (Staging, QA, Production)')
     
     args = parser.parse_args()
     
@@ -455,9 +507,10 @@ def main():
     safe_print(f"   Failed: {data['failed_tests']}")
     safe_print(f"   Skipped: {data['skipped_tests']}")
     safe_print(f"   Success Rate: {data['success_rate']}%")
+    safe_print(f"   Total Runtime: {data['total_runtime_seconds']:.1f} seconds")
     
     # Generate HTML report
-    if generate_html_report(data, html_report_path):
+    if generate_html_report(data, html_report_path, args.environment):
         safe_print("SUCCESS: Enhanced HTML report with actual results generation completed!")
     else:
         sys.exit(1)

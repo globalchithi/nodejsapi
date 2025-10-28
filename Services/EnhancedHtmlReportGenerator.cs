@@ -80,6 +80,14 @@ namespace VaxCareApiTests.Services
                 testResults.FailedTests = testResults.TestResults.Count(t => t.Status == TestStatus.Failed);
                 testResults.SkippedTests = testResults.TestResults.Count(t => t.Status == TestStatus.Skipped);
                 testResults.SuccessRate = testResults.TotalTests > 0 ? (double)testResults.PassedTests / testResults.TotalTests * 100 : 0;
+                
+                // Calculate total runtime
+                if (testResults.TestResults.Any())
+                {
+                    var startTime = testResults.TestResults.Min(t => t.StartTime);
+                    var endTime = testResults.TestResults.Max(t => t.EndTime);
+                    testResults.TotalRuntime = endTime - startTime;
+                }
 
                 return testResults;
             }
@@ -127,6 +135,7 @@ namespace VaxCareApiTests.Services
             var skippedTests = testResults.SkippedTests;
             var totalTests = testResults.TotalTests;
             var successRate = testResults.SuccessRate;
+            var totalRuntime = testResults.TotalRuntime;
 
             var html = $@"
 <!DOCTYPE html>
@@ -192,6 +201,10 @@ namespace VaxCareApiTests.Services
                 <div class='stat-number'>{successRate:F1}%</div>
                 <div class='stat-label'>Success Rate</div>
             </div>
+            <div class='stat-card'>
+                <div class='stat-number'>{totalRuntime.TotalSeconds:F1}s</div>
+                <div class='stat-label'>Total Runtime</div>
+            </div>
         </div>
         
         <div class='test-results'>
@@ -256,7 +269,8 @@ namespace VaxCareApiTests.Services
         public int PassedTests { get; set; }
         public int FailedTests { get; set; }
         public int SkippedTests { get; set; }
-        public double SuccessRate { get; set;         }
+        public double SuccessRate { get; set; }
+        public TimeSpan TotalRuntime { get; set; }
     }
 
     public class TestInfo

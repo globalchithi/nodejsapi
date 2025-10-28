@@ -70,6 +70,15 @@ namespace VaxCareApiTests.Services
 
         private async Task GenerateJsonReportAsync(string timestamp)
         {
+            // Calculate total runtime
+            var totalRuntime = TimeSpan.Zero;
+            if (_testResults.Any())
+            {
+                var startTime = _testResults.Min(t => t.StartTime);
+                var endTime = _testResults.Max(t => t.EndTime);
+                totalRuntime = endTime - startTime;
+            }
+
             var reportData = new
             {
                 GeneratedAt = DateTime.Now,
@@ -78,6 +87,7 @@ namespace VaxCareApiTests.Services
                 FailedTests = _testResults.Count(t => t.Status == TestStatus.Failed),
                 SkippedTests = _testResults.Count(t => t.Status == TestStatus.Skipped),
                 SuccessRate = _testResults.Count > 0 ? (double)_testResults.Count(t => t.Status == TestStatus.Passed) / _testResults.Count * 100 : 0,
+                TotalRuntime = totalRuntime,
                 TestResults = _testResults.Select(tr => new
                 {
                     tr.TestName,
@@ -124,6 +134,15 @@ namespace VaxCareApiTests.Services
             var skippedTests = _testResults.Count(t => t.Status == TestStatus.Skipped);
             var totalTests = _testResults.Count;
             var successRate = totalTests > 0 ? (double)passedTests / totalTests * 100 : 0;
+            
+            // Calculate total runtime
+            var totalRuntime = TimeSpan.Zero;
+            if (_testResults.Any())
+            {
+                var startTime = _testResults.Min(t => t.StartTime);
+                var endTime = _testResults.Max(t => t.EndTime);
+                totalRuntime = endTime - startTime;
+            }
 
             var html = $@"
 <!DOCTYPE html>
@@ -185,6 +204,10 @@ namespace VaxCareApiTests.Services
                 <div class='stat-number'>{successRate:F1}%</div>
                 <div class='stat-label'>Success Rate</div>
             </div>
+            <div class='stat-card'>
+                <div class='stat-number'>{totalRuntime.TotalSeconds:F1}s</div>
+                <div class='stat-label'>Total Runtime</div>
+            </div>
         </div>
         
         <div class='test-results'>
@@ -234,6 +257,15 @@ namespace VaxCareApiTests.Services
             var skippedTests = _testResults.Count(t => t.Status == TestStatus.Skipped);
             var totalTests = _testResults.Count;
             var successRate = totalTests > 0 ? (double)passedTests / totalTests * 100 : 0;
+            
+            // Calculate total runtime
+            var totalRuntime = TimeSpan.Zero;
+            if (_testResults.Any())
+            {
+                var startTime = _testResults.Min(t => t.StartTime);
+                var endTime = _testResults.Max(t => t.EndTime);
+                totalRuntime = endTime - startTime;
+            }
 
             var markdown = $@"# 🧪 VaxCare API Test Report
 
@@ -247,6 +279,11 @@ namespace VaxCareApiTests.Services
 | ❌ Failed | {failedTests} | {(double)failedTests / totalTests * 100:F1}% |
 | ⏭️ Skipped | {skippedTests} | {(double)skippedTests / totalTests * 100:F1}% |
 | **Total** | **{totalTests}** | **{successRate:F1}%** |
+
+## ⏱️ Execution Summary
+
+- **Total Runtime:** {totalRuntime.TotalSeconds:F1} seconds ({totalRuntime.TotalMinutes:F1} minutes)
+- **Average Test Duration:** {(totalTests > 0 ? _testResults.Average(t => t.Duration.TotalMilliseconds) : 0):F0}ms
 
 ## 📋 Test Results
 
@@ -288,6 +325,15 @@ namespace VaxCareApiTests.Services
             var skippedTests = _testResults.Count(t => t.Status == TestStatus.Skipped);
             var totalTests = _testResults.Count;
             var successRate = totalTests > 0 ? (double)passedTests / totalTests * 100 : 0;
+            
+            // Calculate total runtime
+            var totalRuntime = TimeSpan.Zero;
+            if (_testResults.Any())
+            {
+                var startTime = _testResults.Min(t => t.StartTime);
+                var endTime = _testResults.Max(t => t.EndTime);
+                totalRuntime = endTime - startTime;
+            }
 
             return $@"VaxCare API Test Suite - Summary Report
 Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
@@ -299,6 +345,8 @@ Passed: {passedTests}
 Failed: {failedTests}
 Skipped: {skippedTests}
 Success Rate: {successRate:F1}%
+Total Runtime: {totalRuntime.TotalSeconds:F1} seconds ({totalRuntime.TotalMinutes:F1} minutes)
+Average Test Duration: {(totalTests > 0 ? _testResults.Average(t => t.Duration.TotalMilliseconds) : 0):F0}ms
 
 Test Details:
 =============
