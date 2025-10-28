@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using VaxCareApiTests.Models;
+using System.Net.Sockets;
 
 namespace VaxCareApiTests.Services;
 
@@ -13,6 +14,7 @@ public class HttpClientService : IDisposable
     private readonly IConfiguration _configuration;
     private readonly ApiConfiguration _apiConfig;
     private readonly HeadersConfiguration _headersConfig;
+    private readonly RetryService? _retryService;
 
     public HttpClientService(HttpClient httpClient, IConfiguration configuration, ILogger<HttpClientService> logger)
     {
@@ -41,11 +43,26 @@ public class HttpClientService : IDisposable
             UserAgent = configuration["Headers:User-Agent"] ?? ""
         };
         
+        // Initialize retry service if retry configuration is available
+        if (_apiConfig.RetryConfiguration != null)
+        {
+            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
+            _retryService = new RetryService(
+                loggerFactory.CreateLogger<RetryService>(), 
+                _apiConfig.RetryConfiguration
+            );
+        }
+
         // Debug: Log configuration values
         _logger.LogInformation($"BaseUrl: {_apiConfig.BaseUrl}");
         _logger.LogInformation($"IsCalledByJob: '{_headersConfig.IsCalledByJob}'");
         _logger.LogInformation($"XVaxHubIdentifier: '{_headersConfig.XVaxHubIdentifier}'");
         _logger.LogInformation($"UserAgent: '{_headersConfig.UserAgent}'");
+        _logger.LogInformation($"Timeout: {_apiConfig.Timeout}ms");
+        if (_apiConfig.RetryConfiguration != null)
+        {
+            _logger.LogInformation($"Retry: {_apiConfig.RetryConfiguration.MaxRetryAttempts} attempts, {_apiConfig.RetryConfiguration.RetryDelayMs}ms base delay");
+        }
         
         ConfigureHttpClient();
     }
@@ -113,6 +130,21 @@ public class HttpClientService : IDisposable
     }
 
     public async Task<HttpResponseMessage> GetAsync(string endpoint)
+    {
+        if (_retryService != null)
+        {
+            return await _retryService.ExecuteHttpRequestWithRetryAsync(
+                async () => await ExecuteGetRequestAsync(endpoint),
+                $"GET {endpoint}"
+            );
+        }
+        else
+        {
+            return await ExecuteGetRequestAsync(endpoint);
+        }
+    }
+
+    private async Task<HttpResponseMessage> ExecuteGetRequestAsync(string endpoint)
     {
         try
         {
@@ -201,6 +233,21 @@ public class HttpClientService : IDisposable
     }
 
     public async Task<HttpResponseMessage> PostAsync(string endpoint, HttpContent content)
+    {
+        if (_retryService != null)
+        {
+            return await _retryService.ExecuteHttpRequestWithRetryAsync(
+                async () => await ExecutePostRequestAsync(endpoint, content),
+                $"POST {endpoint}"
+            );
+        }
+        else
+        {
+            return await ExecutePostRequestAsync(endpoint, content);
+        }
+    }
+
+    private async Task<HttpResponseMessage> ExecutePostRequestAsync(string endpoint, HttpContent content)
     {
         try
         {
@@ -339,6 +386,21 @@ public class HttpClientService : IDisposable
     }
 
     public async Task<HttpResponseMessage> PutAsync(string endpoint, HttpContent content)
+    {
+        if (_retryService != null)
+        {
+            return await _retryService.ExecuteHttpRequestWithRetryAsync(
+                async () => await ExecutePutRequestAsync(endpoint, content),
+                $"PUT {endpoint}"
+            );
+        }
+        else
+        {
+            return await ExecutePutRequestAsync(endpoint, content);
+        }
+    }
+
+    private async Task<HttpResponseMessage> ExecutePutRequestAsync(string endpoint, HttpContent content)
     {
         try
         {

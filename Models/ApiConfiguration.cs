@@ -12,6 +12,24 @@ public class ApiConfiguration
     
     [JsonPropertyName("InsecureHttps")]
     public bool InsecureHttps { get; set; } = true;
+    
+    [JsonPropertyName("RetryConfiguration")]
+    public RetryConfiguration? RetryConfiguration { get; set; }
+}
+
+public class RetryConfiguration
+{
+    [JsonPropertyName("MaxRetryAttempts")]
+    public int MaxRetryAttempts { get; set; } = 3;
+    
+    [JsonPropertyName("RetryDelayMs")]
+    public int RetryDelayMs { get; set; } = 2000;
+    
+    [JsonPropertyName("ExponentialBackoff")]
+    public bool ExponentialBackoff { get; set; } = true;
+    
+    [JsonPropertyName("MaxRetryDelayMs")]
+    public int MaxRetryDelayMs { get; set; } = 10000;
 }
 
 public class TestConfiguration

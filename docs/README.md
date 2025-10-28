@@ -266,7 +266,7 @@ The test suite includes five comprehensive test cases:
 #### 1. **Basic API Test**
 - **Purpose**: Tests the main GET endpoint with all headers from the curl command
 - **Validates**: Response status (200), content-type, response structure
-- **Features**: 30-second timeout, insecure HTTPS, comprehensive logging
+- **Features**: 60-second timeout (increased for reliability), insecure HTTPS, comprehensive logging, retry logic
 
 #### 2. **Authentication Test**
 - **Purpose**: Validates the X-VaxHub-Identifier header and decodes the JWT
@@ -287,6 +287,11 @@ The test suite includes five comprehensive test cases:
 - **Purpose**: Validates the complete curl command conversion
 - **Validates**: URL matching, header presence, format validation
 - **Features**: Base64 token validation, traceparent format validation
+
+#### 6. **Retry Logic and Timeout Tests**
+- **Purpose**: Tests the enhanced retry mechanism and increased timeout settings
+- **Validates**: Retry configuration loading, timeout settings, transient failure handling
+- **Features**: Exponential backoff, configurable retry attempts, improved reliability
 
 ### Test Configuration: `VaxCareApiTests.csproj`
 
@@ -313,8 +318,14 @@ The test suite includes five comprehensive test cases:
 {
   "ApiConfiguration": {
     "BaseUrl": "https://vhapistg.vaxcare.com",  // Configured per environment
-    "Timeout": 30000,
-    "InsecureHttps": true
+    "Timeout": 60000,  // Increased from 30s to 60s for better reliability
+    "InsecureHttps": true,
+    "RetryConfiguration": {
+      "MaxRetryAttempts": 3,
+      "RetryDelayMs": 2000,
+      "ExponentialBackoff": true,
+      "MaxRetryDelayMs": 10000
+    }
   },
   "Headers": {
     "IsCalledByJob": "true",
@@ -349,6 +360,20 @@ curl --insecure "https://vhapistg.vaxcare.com/api/inventory/product/v2" \  # URL
 ```
 
 ## 🔍 Key Technical Features
+
+### **Retry Logic and Timeout Configuration**
+```csharp
+// Automatic retry with exponential backoff
+"RetryConfiguration": {
+  "MaxRetryAttempts": 3,        // Maximum retry attempts
+  "RetryDelayMs": 2000,         // Base delay between retries
+  "ExponentialBackoff": true,   // Use exponential backoff
+  "MaxRetryDelayMs": 10000      // Maximum delay cap
+}
+
+// Increased timeout for better reliability
+"Timeout": 60000  // 60 seconds (increased from 30s)
+```
 
 ### **Insecure HTTPS Support**
 ```csharp
