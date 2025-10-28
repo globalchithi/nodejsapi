@@ -359,6 +359,14 @@ curl --insecure "https://vhapistg.vaxcare.com/api/inventory/product/v2" \  # URL
 -H "User-Agent: okhttp/4.12.0"
 ```
 
+## 📚 Documentation
+
+- **[Retry Logic Guide](RETRY-LOGIC-GUIDE.md)** - Comprehensive guide to retry logic and timeout configuration
+- **[Retry Quick Reference](RETRY-QUICK-REFERENCE.md)** - Quick reference card for developers
+- **[Retry Flow Diagram](RETRY-FLOW-DIAGRAM.md)** - Visual flow diagrams and timing charts
+- **[Retry Examples](RETRY-EXAMPLES.md)** - Code examples and usage patterns
+- **[Test Summary Report](TestSummaryReport.md)** - Detailed test execution reports
+
 ## 🔍 Key Technical Features
 
 ### **Retry Logic and Timeout Configuration**
