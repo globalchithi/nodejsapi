@@ -35,7 +35,17 @@ VaxCareApiTests/
 │   └── TestUtilities.cs     # Test utility functions
 ├── Tests/
 │   └── InventoryApiTests.cs # Main API test suite
+├── TestRunner/             # Core test running scripts
+│   ├── run-all-tests.py     # Main test runner
+│   ├── generate-enhanced-html-report-with-actual-results.py
+│   ├── generate-enhanced-html-report-with-actual-results-windows.py
+│   ├── generate-enhanced-html-report-robust.py
+│   ├── send-teams-notification.py
+│   ├── open-html-report.py
+│   └── README.md           # TestRunner documentation
 ├── TestReports/            # Generated test reports (auto-created)
+├── run-all-tests.py        # Wrapper script (calls TestRunner/)
+├── open-html-report.py     # Wrapper script (calls TestRunner/)
 ├── .env                   # Environment configuration
 ├── .env.example           # Environment template
 ├── README.md              # This documentation
